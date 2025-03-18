@@ -60,9 +60,10 @@ export default function GenerateQuestionPage() {
       {question && (
         <div className="mt-4 p-4 border rounded bg-gray-100">
           <h2 className="font-semibold">Soal:</h2>
-          <p>{question}</p>
+          <ReactMarkdown>{question}</ReactMarkdown>
           <h2 className="font-semibold mt-2">Jawaban:</h2>
           <ReactMarkdown>{answer}</ReactMarkdown>
+          {/* <div dangerouslySetInnerHTML={{ __html: answer.replaceAll("\n", "<br>") }} /> */}
         </div>
       )}
     </div>

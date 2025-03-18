@@ -9,7 +9,13 @@ export async function GET() {
       return NextResponse.json({ message: "Belum ada soal yang dibuat" }, { status: 200 });
     }
 
-    return NextResponse.json(rows, { status: 200 });
+    // Format ulang `answer` agar lebih rapi
+    const formattedRows = rows.map(row => ({
+      ...row,
+      answer: row.answer.replace(/\n/g, "\n\n") // Tambahkan newline ekstra agar lebih jelas di UI
+    }));
+
+    return NextResponse.json(formattedRows, { status: 200 });
 
   } catch (error) {
     console.error("❌ Gagal mengambil data dari database:", error);

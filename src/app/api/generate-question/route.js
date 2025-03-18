@@ -39,10 +39,7 @@ export async function POST(req) {
     }
 
     // Hapus karakter markdown `**`, `*`, dan newline tambahan yang tidak diperlukan
-    const cleanAnswer = answer
-      .replace(/\*\*/g, "") // Menghapus `**bold**`
-      .replace(/\*/g, "") // Menghapus `*italic*`
-      .replace(/\n{2,}/g, "\n") // Menghapus newline berlebihan
+    const cleanAnswer = answer.replace(/\n/g, "\n\n");
 
     console.log("✅ Soal yang disimpan:", question);
     console.log("✅ Jawaban yang disimpan:", cleanAnswer);
