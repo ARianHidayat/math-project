@@ -1,9 +1,13 @@
 "use client";
-
+import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { useRouter } from "next/router";
+
 
 export default function GenerateQuestionPage() {
+  const router = useRouter();
+  
   const [topic, setTopic] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
@@ -38,22 +42,27 @@ export default function GenerateQuestionPage() {
   };
 
   return (
-    <div className="p-6 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Buat Soal Matematika</h1>
-      <input
-        type="text"
-        placeholder="Masukkan topik (misal: Aljabar)"
-        value={topic}
-        onChange={(e) => setTopic(e.target.value)}
-        className="w-full p-2 border rounded mb-4"
-      />
-      <button
-        onClick={generateQuestion}
-        disabled={loading || !topic}
-        className="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
-      >
-        {loading ? "Memproses..." : "Generate Soal"}
-      </button>
+    <div className="p-6 max-w-lg mx-auto container">
+      <h1 className="text-2xl font-bold mb-4 text-center">Buat Soal Matematika</h1>
+      <button className='btn btn-info' onClick={() => {
+        router.push('/questions-output')
+      }}>hasil soal</button>
+      <div>
+        <input
+          type="text"
+          placeholder="Masukkan topik (misal: Aljabar)"
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          className="w-full p-2 border rounded mb-4"
+        />
+        <button
+          onClick={generateQuestion}
+          disabled={loading || !topic}
+          className="btn btn-success  text-white px-4 py-2 rounded disabled:bg-gray-400"
+        >
+          {loading ? "Memproses..." : "Generate Soal"}
+        </button>
+      </div>
 
       {error && <p className="text-red-500 mt-2">{error}</p>}
 

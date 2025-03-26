@@ -1,9 +1,15 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { useRouter } from "next/router";
 
 export default function QuestionsPage() {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const questionRefs = useRef({}); // Menyimpan referensi unik untuk setiap soal
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchQuestions() {
@@ -11,6 +17,12 @@ export default function QuestionsPage() {
         const response = await fetch("/api/questions"); // Panggil endpoint GET
         const data = await response.json();
         setQuestions(data);
+
+        // Inisialisasi refs untuk setiap soal
+        questionRefs.current = data.reduce((acc, q) => {
+          acc[q.id] = React.createRef();
+          return acc;
+        }, {});
       } catch (error) {
         console.error("Gagal mengambil data soal:", error);
       } finally {
@@ -21,10 +33,25 @@ export default function QuestionsPage() {
     fetchQuestions();
   }, []);
 
-  return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold text-center mb-6">Daftar Soal</h1>
+  const downloadPDF = (id) => {
+    const input = questionRefs.current[id].current;
+    html2canvas(input, { scale: 2 }).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgWidth = 190;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
+      pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+      pdf.save(`soal_${id}.pdf`);
+    });
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto p-6 container">
+      <h1 className="text-2xl font-bold text-center mb-6">Daftar Soal</h1>
+      <button onClick={() => {
+        router.push('/question-page')
+      }}>buat soal</button>
       {loading ? (
         <p className="text-center">Loading...</p>
       ) : questions.length === 0 ? (
@@ -32,7 +59,7 @@ export default function QuestionsPage() {
       ) : (
         <div className="space-y-6">
           {questions.map((q) => (
-            <div key={q.id} className="p-4 border rounded-lg shadow-md bg-white">
+            <div key={q.id} ref={questionRefs.current[q.id]} className="p-4 border rounded-lg shadow-md bg-white mb-3">
               <p className="font-semibold">📝 Soal:</p>
               <ReactMarkdown>{q.question}</ReactMarkdown>
 
@@ -42,7 +69,13 @@ export default function QuestionsPage() {
               <p className="text-sm text-gray-500 mt-3">
                 📅 Dibuat pada: {new Date(q.created_at).toLocaleString()}
               </p>
-              <hr />
+
+              <button
+                onClick={() => downloadPDF(q.id)}
+                className="btn btn-success"
+              >
+                📄 Download PDF
+              </button>
             </div>
           ))}
         </div>
