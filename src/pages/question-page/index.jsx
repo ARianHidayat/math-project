@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useRouter } from "next/router";
+import Navbar from '@/pages/components/navbar';
 
 
 export default function GenerateQuestionPage() {
@@ -42,7 +43,8 @@ export default function GenerateQuestionPage() {
   };
 
   return (
-    <div className="p-6 max-w-lg mx-auto container">
+    <div className="p-6 max-w-lg mx-auto container-fluid">
+      <Navbar/>
       <h1 className="text-2xl font-bold mb-4 text-center">Buat Soal Matematika</h1>
       <button className='btn btn-info' onClick={() => {
         router.push('/questions-output')

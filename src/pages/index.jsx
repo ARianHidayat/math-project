@@ -1,5 +1,6 @@
 import { useSelector, useDispatch } from "react-redux";
 import {increment, decrement, reset} from "@/redux/counterSlice";
+import Navbar from "./components/navbar";
 
 export default function Home() {
   const count = useSelector((state) => state.counter.value);
@@ -7,14 +8,9 @@ export default function Home() {
 
   return (
     <>
-    <h1>halo dek</h1>
-    <div>
-      <h3> Counter: {count}</h3>
-      <div>
-        <button  onClick={() => dispatch(increment())}>tambah</button>
-        <button onClick={() => dispatch(decrement())}>kurang</button>
-        <button onClick={() => dispatch(reset())}>reset</button>
-      </div>
+    <Navbar/>
+    <div className="container-fluid">
+      <h1>ini untuk page home</h1>
     </div>
     </>
   );
