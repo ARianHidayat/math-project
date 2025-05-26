@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
+    "@prisma/client": "^6.8.2",
     "@reduxjs/toolkit": "^2.6.1",
     "axios": "^1.8.3",
     "bootstrap": "^5.3.3",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "eslint": "^9",
-    "eslint-config-next": "15.2.2"
+    "eslint-config-next": "15.2.2",
+    "prisma": "^6.8.2"
   }
 }
