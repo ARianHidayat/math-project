@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react'; // ✅ Pastikan ada `useEffect` di sini
+import { useEffect } from 'react'; // ✅ Pastikan ada `useEffect` di sini
+//next update, pakai langsung import { useEffect } from 'react'; karena ini yang terbaru
 import 'bootstrap/dist/css/bootstrap.min.css';
 // import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import Link from 'next/link'
@@ -10,7 +11,7 @@ export default function Navbar(){
       }, []);
     return (
         <>
-        <nav className="navbar navbar-expand-lg bg-body-tertiary">
+        <nav className="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
             <div className="container-fluid mx-5">
                 <button className="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
                 <span className="navbar-toggler-icon"></span>
@@ -28,10 +29,10 @@ export default function Navbar(){
                     <a className="nav-link disabled" aria-disabled="true">Disabled</a>
                     </li>
                 </ul>
-                <form className="d-flex" role="search">
+                {/* <form className="d-flex" role="search">
                     <input className="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
                     <button className="btn btn-outline-success" type="submit">Search</button>
-                </form>
+                </form> */}
                 </div>
             </div>
             </nav>
