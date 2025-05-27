@@ -6,7 +6,8 @@ export async function GET() {
     const [rows] = await pool.query("SELECT id, question, answer, created_at FROM questions ORDER BY created_at DESC");
 
     if (!rows.length) {
-      return NextResponse.json({ message: "Belum ada soal yang dibuat" }, { status: 200 });
+      // return NextResponse.json({ message: "Belum ada soal yang dibuat" }, { status: 200 });
+      return NextResponse.json([], { status: 200 }); // ubah ini
     }
 
     // Format ulang `answer` agar lebih rapi

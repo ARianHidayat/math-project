@@ -13,10 +13,13 @@ export default function QuestionsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    async function fetchQuestions() {
-      try {
-        const response = await fetch("/api/questions"); // Panggil endpoint GET
-        const data = await response.json();
+  async function fetchQuestions() {
+    try {
+      const response = await fetch("/api/questions");
+      const data = await response.json();
+
+      // Pastikan data adalah array
+      if (Array.isArray(data)) {
         setQuestions(data);
 
         // Inisialisasi refs untuk setiap soal
@@ -24,15 +27,20 @@ export default function QuestionsPage() {
           acc[q.id] = React.createRef();
           return acc;
         }, {});
-      } catch (error) {
-        console.error("Gagal mengambil data soal:", error);
-      } finally {
-        setLoading(false);
+      } else {
+        setQuestions([]); // fallback jika bukan array
       }
+    } catch (error) {
+      console.error("Gagal mengambil data soal:", error);
+      setQuestions([]); // fallback jika error
+    } finally {
+      setLoading(false);
     }
+  }
 
-    fetchQuestions();
-  }, []);
+  fetchQuestions();
+}, []);
+
 
   const downloadPDF = (id) => {
     const input = questionRefs.current[id].current;
