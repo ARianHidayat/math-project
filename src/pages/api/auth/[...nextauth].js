@@ -31,7 +31,7 @@ export default NextAuth({
           },
           from: emailFrom,
 
-          maxAge: 60 * 60 * 1, // 1 jam
+          maxAge: 60 * 60 * 24, // 24 jam
         })
       : null,
   ].filter(Boolean), // Penting agar tidak ada 'null' dalam array

@@ -6,11 +6,16 @@ import Navbar from "./components/navbar";
 export default function Home() {
   // const count = useSelector((state) => state.counter.value);
   // const dispatch = useDispatch();
-   const { data: session } = useSession();
+   const { data: session,status } = useSession();
+
+  if (status === "loading") {
+    return <p>Loading...</p>;
+  }
 
   if (!session) {
     return (
       <div>
+        <Navbar/>
         <p>Silakan login terlebih dahulu.</p>
         <button onClick={() => signIn()}>Login</button>
       </div>

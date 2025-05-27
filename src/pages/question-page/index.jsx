@@ -1,19 +1,37 @@
 "use client";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 import Navbar from '@/pages/components/navbar';
-
 
 export default function GenerateQuestionPage() {
   const router = useRouter();
-  
+  const { data: session, status } = useSession();
+
   const [topic, setTopic] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Redirect ke login jika belum login
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  // Tampilkan loading sementara cek session
+  if (status === "loading") {
+    return <div>Memeriksa status login...</div>;
+  }
+
+  // Kalau belum login, kita sudah redirect, jadi jangan render halaman ini
+  if (!session) {
+    return null;
+  }
 
   const generateQuestion = async () => {
     setLoading(true);
@@ -44,11 +62,14 @@ export default function GenerateQuestionPage() {
 
   return (
     <div className="p-6 max-w-lg mx-auto container-fluid">
-      <Navbar/>
+      <Navbar />
       <h1 className="text-2xl font-bold mb-4 text-center">Buat Soal Matematika</h1>
-      <button className='btn btn-info' onClick={() => {
-        router.push('/questions-output')
-      }}>hasil soal</button>
+      <button
+        className='btn btn-info'
+        onClick={() => router.push('/questions-output')}
+      >
+        hasil soal
+      </button>
       <div>
         <input
           type="text"
@@ -60,7 +81,7 @@ export default function GenerateQuestionPage() {
         <button
           onClick={generateQuestion}
           disabled={loading || !topic}
-          className="btn btn-success  text-white px-4 py-2 rounded disabled:bg-gray-400"
+          className="btn btn-success text-white px-4 py-2 rounded disabled:bg-gray-400"
         >
           {loading ? "Memproses..." : "Generate Soal"}
         </button>
@@ -74,7 +95,6 @@ export default function GenerateQuestionPage() {
           <ReactMarkdown>{question}</ReactMarkdown>
           <h2 className="font-semibold mt-2">Jawaban:</h2>
           <ReactMarkdown>{answer}</ReactMarkdown>
-          {/* <div dangerouslySetInnerHTML={{ __html: answer.replaceAll("\n", "<br>") }} /> */}
         </div>
       )}
     </div>
