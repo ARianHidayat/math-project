@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import pool from "@/lib/db";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -8,10 +10,16 @@ const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 export async function POST(req) {
   try {
     console.log("📥 Menerima request...");
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user || !session.user.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { topic } = await req.json();
 
     if (!topic) {
-      return NextResponse.json({ error: "Topic tidak boleh kosong" }, { status: 400 });
+      return NextResponse.json({ error: "Topik tidak boleh kosong" }, { status: 400 });
     }
 
     console.log("📌 Topik yang diterima:", topic);
@@ -33,27 +41,37 @@ export async function POST(req) {
       question = fullResponse.substring(questionIndex + 8, answerIndex).trim();
       answer = fullResponse.substring(answerIndex + 10).trim();
     } else {
-      // Jika format tidak sesuai, gunakan fullResponse sebagai fallback
+      // Fallback jika format Gemini tidak sesuai
       question = fullResponse;
       answer = "Jawaban tidak ditemukan.";
     }
 
-    // Hapus karakter markdown `**`, `*`, dan newline tambahan yang tidak diperlukan
     const cleanAnswer = answer.replace(/\n/g, "\n\n");
 
-    console.log("✅ Soal yang disimpan:", question);
-    console.log("✅ Jawaban yang disimpan:", cleanAnswer);
+    // Cari user berdasarkan email
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
 
-    // Simpan ke database dengan teks yang sudah dibersihkan
-    await pool.query(
-      "INSERT INTO questions (question, answer, created_at) VALUES (?, ?, NOW())",
-      [question, cleanAnswer]
-    );
+    if (!user) {
+      return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });
+    }
+
+    // Simpan soal ke database lewat Prisma
+    const saved = await prisma.question.create({
+      data: {
+        question,
+        answer: cleanAnswer,
+        userId: user.id,
+      },
+    });
+
+    console.log("✅ Soal berhasil disimpan:", saved);
 
     return NextResponse.json({ question, answer: cleanAnswer }, { status: 200 });
 
   } catch (error) {
-    console.error("❌ Terjadi kesalahan di server:", error.message);
+    console.error("❌ Terjadi kesalahan di server:", error);
     return NextResponse.json({ error: "Terjadi kesalahan pada server" }, { status: 500 });
   }
 }

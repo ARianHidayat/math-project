@@ -22,6 +22,7 @@ model User {
 
   accounts      Account[]
   sessions      Session[]
+   questions     Question[]
 }
 
 model Account {
@@ -60,3 +61,11 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model Question {
+  id         Int      @id @default(autoincrement())
+  question   String @db.Text
+  answer     String @db.Text
+  created_at DateTime @default(now())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+}
