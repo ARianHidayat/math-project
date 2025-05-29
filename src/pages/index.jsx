@@ -23,7 +23,7 @@ export default function Home() {
   }
 
   return (
-    <>
+    <div className="mx-auto">
     <Navbar/>
     <div className="container-fluid">
       <h1>ini untuk page home</h1>
@@ -32,6 +32,6 @@ export default function Home() {
         <button onClick={() => signOut()}>Logout</button>
       </div>
     </div>
-    </>
+    </div>
   );
 }

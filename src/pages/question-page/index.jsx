@@ -61,42 +61,48 @@ export default function GenerateQuestionPage() {
   };
 
   return (
-    <div className="p-6 max-w-lg mx-auto container-fluid">
+    <div>
       <Navbar />
-      <h1 className="text-2xl font-bold mb-4 text-center">Buat Soal Matematika</h1>
-      <button
-        className='btn btn-info'
-        onClick={() => router.push('/questions-output')}
-      >
-        hasil soal
-      </button>
-      <div>
-        <input
-          type="text"
-          placeholder="Masukkan topik (misal: Aljabar)"
-          value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          className="w-full p-2 border rounded mb-4"
-        />
-        <button
-          onClick={generateQuestion}
-          disabled={loading || !topic}
-          className="btn btn-success text-white px-4 py-2 rounded disabled:bg-gray-400"
+      <div className="mx-auto px-5">
+        <h1 className="text-2xl font-bold mb-4 text-center">Buat Soal Matematika Disini</h1>
+        {/* <button
+          className='btn btn-info'
+          onClick={() => router.push('/questions-output')}
         >
-          {loading ? "Memproses..." : "Generate Soal"}
-        </button>
-      </div>
-
-      {error && <p className="text-red-500 mt-2">{error}</p>}
-
-      {question && (
-        <div className="mt-4 p-4 border rounded bg-gray-100">
-          <h2 className="font-semibold">Soal:</h2>
-          <ReactMarkdown>{question}</ReactMarkdown>
-          <h2 className="font-semibold mt-2">Jawaban:</h2>
-          <ReactMarkdown>{answer}</ReactMarkdown>
+          hasil soal
+        </button> */}
+        {/* ini untuk input agar bisa generate soal */}
+        <div className='input-group d-flex justify-content-center gap-2'>
+          <input
+            type="text"
+            placeholder="Masukkan topik (misal: Aljabar)"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            className="form-control p-2 border rounded mb-4"
+          />
+          <div class="input-group-append">
+          <button
+            onClick={generateQuestion}
+            disabled={loading || !topic}
+            type='button'
+            className="btn btn-success text-white px-4 py-2 rounded disabled:bg-gray-400"
+          >
+            {loading ? "Memproses..." : "Buat Soal"}
+          </button>
+          </div>
         </div>
-      )}
+
+        {error && <p className="text-red-500 mt-2">{error}</p>}
+
+        {question && (
+          <div className="mt-4 p-4 border rounded bg-gray-100">
+            <h2 className="font-semibold">Soal:</h2>
+            <ReactMarkdown>{question}</ReactMarkdown>
+            <h2 className="font-semibold mt-2">Jawaban:</h2>
+            <ReactMarkdown>{answer}</ReactMarkdown>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
