@@ -1,20 +1,44 @@
 import { getProviders, getCsrfToken } from "next-auth/react";
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 export default function SignIn({ providers, csrfToken }) {
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Masuk ke akun</h1>
-      {providers && Object.values(providers).map((provider) =>
-        provider.id === "email" ? (
-          <form method="post" action="/api/auth/signin/email" key={provider.name}>
-            <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
-            <label>
-              Email: <input type="email" name="email" required />
-            </label>
-            <button type="submit">Kirim Link Masuk</button>
-          </form>
-        ) : null
-      )}
+    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh", backgroundColor: "#f8f9fa" }}>
+      <div className="card shadow" style={{ width: "24rem" }}>
+        <div className="card-body">
+          <h5 className="card-title text-center mb-3">Masuk ke Akun</h5>
+          <hr />
+          <p className="card-text text-center">
+            Silakan masukkan email Anda untuk menerima link masuk.<br />
+            Link akan dikirim ke email yang kamu masukkan.
+          </p>
+
+          {providers && Object.values(providers).map((provider) =>
+            provider.id === "email" ? (
+              <form method="post" action="/api/auth/signin/email" key={provider.name}>
+                <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
+                
+                <div className="mb-3">
+                  <label htmlFor="email" className="form-label">Email:</label>
+                  <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    className="form-control"
+                    required
+                    placeholder="kratos@gmail.com"
+                  />
+                </div>
+
+                <div className="d-grid">
+                  <button type="submit" className="btn btn-primary">Kirim Link Masuk</button>
+                </div>
+              </form>
+            ) : null
+          )}
+        </div>
+      </div>
     </div>
   );
 }

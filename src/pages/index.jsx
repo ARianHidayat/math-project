@@ -2,6 +2,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { useSelector, useDispatch} from "react-redux";
 import {increment, decrement, reset} from "@/redux/counterSlice";
 import Navbar from "./components/navbar";
+import LoginForm from "./components/loginForm";
 
 export default function Home() {
   // const count = useSelector((state) => state.counter.value);
@@ -16,8 +17,10 @@ export default function Home() {
     return (
       <div>
         <Navbar/>
-        <p>Silakan login terlebih dahulu.</p>
-        <button onClick={() => signIn()}>Login</button>
+        <p>ini home</p>
+        <div className="mx-auto min-vh-100 d-flex align-items-center justify-content-center">
+          <LoginForm/>
+        </div>
       </div>
     );
   }

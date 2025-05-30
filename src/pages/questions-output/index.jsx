@@ -59,9 +59,6 @@ export default function QuestionsPage() {
     <div className="mx-auto">
       <Navbar/>
       <h1 className="text-2xl font-bold text-center mb-6">Daftar Soal</h1>
-      <button onClick={() => {
-        router.push('/question-page')
-      }}>buat soal</button>
       {loading ? (
         <p className="text-center">Loading...</p>
       ) : questions.length === 0 ? (
