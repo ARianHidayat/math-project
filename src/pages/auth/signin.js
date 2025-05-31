@@ -1,5 +1,6 @@
 import { getProviders, getCsrfToken } from "next-auth/react";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Link from "next/link";
 
 
 export default function SignIn({ providers, csrfToken }) {
@@ -33,6 +34,7 @@ export default function SignIn({ providers, csrfToken }) {
 
                 <div className="d-grid">
                   <button type="submit" className="btn btn-primary">Kirim Link Masuk</button>
+                  <Link className="text-center my-2" href="/">Kembali ke Beranda</Link>
                 </div>
               </form>
             ) : null

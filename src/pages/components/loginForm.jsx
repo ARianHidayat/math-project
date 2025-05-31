@@ -3,7 +3,7 @@ import {signIn} from "next-auth/react";
 export default function LoginForm (){
     return (
         <>
-            {<div className="card text-center shadow" style={{width:"20rem"}}>
+            {<div className="card text-center shadow" style={{width:"30rem"}}>
                 <div className="card-body">
                     <h5 className="card-title">Login</h5>
                     <hr />
