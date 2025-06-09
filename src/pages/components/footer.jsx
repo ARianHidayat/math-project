@@ -11,7 +11,7 @@ export default function Footer() {
             <Link href="/" className="text-light text-decoration-none">Beranda</Link>
           </li>
           <li className="list-inline-item">
-            <Link href="/panduan" className="text-light text-decoration-none">Panduan</Link>
+            <Link href="/how-to" className="text-light text-decoration-none">Panduan</Link>
           </li>
           <li className="list-inline-item">
             <Link href="/tentang" className="text-light text-decoration-none">Tentang</Link>

@@ -83,12 +83,48 @@ export default function Home() {
     <div className="mx-auto">
     <Navbar/>
     <div className="container-fluid">
-      <h1>ini untuk page home</h1>
+      {/* <h1>ini untuk page home</h1>
       <div>
         <h1>Halo, {session.user.email}</h1>
         <button onClick={() => signOut()}>Logout</button>
+      </div> */}
       </div>
-    </div>
+              <div className="container py-5">
+            <div className="text-center mb-5 pb-5">
+              <h1>Halo, {session.user.email}</h1>
+              <h1 className="display-4">Selamat Datang di SOMAT</h1>
+              <p className="lead">Platform Pembuatan Soal Matematika Otomatis</p>
+              <p className="text-muted">Buat soal dengan cepat, simpan, dan unduh sesuai kebutuhanmu.</p>
+              <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => handleNavClick('/question-page')}
+              >
+                Buat Soal
+              </button>
+            </div>
+
+            <div className="row text-center">
+              <div className="col-md-4">
+                <div className="card p-4 h-100 shadow">
+                  <h4>Buat Soal Otomatis</h4>
+                  <p>Gunakan AI untuk menghasilkan soal matematika dari prompt yang kamu masukkan.</p>
+                </div>
+              </div>
+              <div className="col-md-4">
+                <div className="card p-4 h-100 shadow">
+                  <h4>Riwayat Soal</h4>
+                  <p>Lihat kembali soal-soal yang pernah kamu buat dan simpan ke database.</p>
+                </div>
+              </div>
+              <div className="col-md-4">
+                <div className="card p-4 h-100 shadow">
+                  <h4>Unduh Soal</h4>
+                  <p>Unduh soal yang kamu buat dalam format PDF agar mudah dibagikan atau dicetak.</p>
+                </div>
+              </div>
+            </div>
+          </div>
     <Footer/>
     </div>
   );

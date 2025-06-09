@@ -50,6 +50,14 @@ export default function Navbar() {
               </button>
             </li>
             <li className="nav-item">
+              <button
+                className="nav-link btn btn-link text-white"
+                onClick={() => router.push('/how-to')}
+              >
+                Petunjuk
+              </button>
+            </li>
+            <li className="nav-item">
               <a className="nav-link disabled" aria-disabled="true">Disabled</a>
             </li>
           </ul>
