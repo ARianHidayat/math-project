@@ -33,6 +33,7 @@ model Question {
   id          Int      @id @default(autoincrement())
   question    String   @db.Text
   answer      String   @db.Text
+  solution    String   @db.Text // <-- TAMBAHKAN BARIS INI
   createdAt   DateTime @default(now())
   paketSoalId Int
   paketSoal   PaketSoal @relation(fields: [paketSoalId], references: [id], onDelete: Cascade)

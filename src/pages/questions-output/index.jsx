@@ -1,5 +1,3 @@
-// File: src/pages/questions-output/index.jsx
-
 import React, { useEffect, useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import jsPDF from "jspdf";
@@ -7,14 +5,21 @@ import html2canvas from "html2canvas";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Navbar from "../components/navbar";
 
+// Hapus import 'Collapse' dari sini, karena kita akan memuatnya di useEffect
+// import { Collapse } from 'bootstrap'; 
+
 export default function QuestionsOutputPage() {
-  // 1. State sekarang untuk menampung daftar Paket Soal
   const [paketSoalList, setPaketSoalList] = useState([]);
   const [loading, setLoading] = useState(true);
-  // 2. Refs sekarang untuk setiap paket, bukan setiap soal
   const paketRefs = useRef({});
 
   useEffect(() => {
+    // --- PERBAIKAN DIMULAI DI SINI ---
+    // Impor JavaScript Bootstrap hanya di sisi klien setelah komponen dimuat.
+    // Ini memastikan kode yang mengakses 'document' tidak berjalan di server.
+    import('bootstrap/dist/js/bootstrap.bundle.min.js');
+    // --- AKHIR PERBAIKAN ---
+
     async function fetchPaketSoal() {
       try {
         const response = await fetch("/api/questions");
@@ -22,7 +27,6 @@ export default function QuestionsOutputPage() {
 
         if (Array.isArray(data)) {
           setPaketSoalList(data);
-          // Inisialisasi refs untuk setiap paket
           paketRefs.current = data.reduce((acc, paket) => {
             acc[paket.id] = React.createRef();
             return acc;
@@ -39,27 +43,14 @@ export default function QuestionsOutputPage() {
     }
 
     fetchPaketSoal();
-  }, []);
+  }, []); // Dependensi array kosong memastikan ini hanya berjalan sekali di klien.
 
-  // 3. Fungsi download sekarang menargetkan seluruh paket
   const downloadPaketPDF = (paketId) => {
-    const input = paketRefs.current[paketId]?.current;
-    if (!input) return;
-
-    html2canvas(input, { scale: 2, useCORS: true }).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = 210;
-      const imgWidth = pdfWidth - 20;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
-      pdf.save(`paket_soal_${paketId}.pdf`);
-    });
+    // ... (Fungsi downloadPDF Anda tidak perlu diubah)
   };
 
   return (
-    <div className=" mx-auto">
+    <div className="mx-auto">
       <Navbar />
       <h1 className="h2 font-bold text-center mb-6">Riwayat Paket Soal</h1>
       {loading ? (
@@ -68,13 +59,14 @@ export default function QuestionsOutputPage() {
         <div className="text-center text-gray-500 card p-4">Belum ada paket soal yang dibuat.</div>
       ) : (
         <div className="space-y-6">
-          {/* 4. Loop terluar untuk setiap PAKET SOAL */}
           {paketSoalList.map((paket) => (
-            // Referensi sekarang ada di div pembungkus paket
             <div key={paket.id} ref={paketRefs.current[paket.id]} className="card shadow-sm mb-4">
               <div className="card-header bg-light d-flex justify-content-between align-items-center">
                 <div>
                   <h2 className="h5 font-bold mb-1">Topik: {paket.topic}</h2>
+                  <p className="text-sm text-muted mb-0">
+                    📅 Dibuat pada: {new Date(paket.createdAt).toLocaleString()}
+                  </p>
                 </div>
                 <button
                   onClick={() => downloadPaketPDF(paket.id)}
@@ -85,25 +77,36 @@ export default function QuestionsOutputPage() {
               </div>
 
               <div className="card-body">
-                {/* 5. Loop dalam untuk setiap SOAL di dalam paket */}
                 {paket.questions.map((q, index) => (
                   <div key={q.id} className={index < paket.questions.length - 1 ? "mb-4 border-bottom pb-3" : "mb-2"}>
                     <p className="font-semibold">📝 Soal #{index + 1}:</p>
                     <div className="p-3 bg-light rounded">
                       <ReactMarkdown>{q.question}</ReactMarkdown>
                     </div>
+                    
+                    <button 
+                      className="btn btn-outline-secondary btn-sm mt-3" 
+                      type="button" 
+                      data-bs-toggle="collapse" 
+                      data-bs-target={`#solution-${q.id}`}
+                      aria-expanded="false"
+                    >
+                      Tampilkan/Sembunyikan Penyelesaian
+                    </button>
 
-                    <p className="font-semibold mt-3">✅ Jawaban:</p>
+                    <div className="collapse mt-2" id={`solution-${q.id}`}>
+                      <div className="p-3 bg-secondary-subtle rounded">
+                         <p className="font-semibold">Langkah Penyelesaian:</p>
+                         <ReactMarkdown>{q.solution}</ReactMarkdown>
+                      </div>
+                    </div>
+
+                    <p className="font-semibold mt-3">✅ Jawaban Akhir:</p>
                     <div className="p-3 bg-light rounded">
                       <ReactMarkdown>{q.answer}</ReactMarkdown>
                     </div>
                   </div>
                 ))}
-              </div>
-              <div className="card-footer">
-                  <p className="text-sm text-muted mb-0">
-                    📅 Dibuat pada: {new Date(paket.createdAt).toLocaleString()}
-                  </p>
               </div>
             </div>
           ))}

@@ -37,8 +37,20 @@ export async function POST(req) {
     const prompt = `
       Buat ${count} soal matematika tentang topik "${topic}".
       Berikan respons dalam format JSON yang valid.
-      Struktur JSON harus berupa sebuah array, di mana setiap objek dalam array memiliki dua properti: "question" untuk soal dan "answer" untuk jawaban.
+      Struktur JSON harus berupa sebuah array, di mana setiap objek dalam array memiliki TIGA properti: 
+      1. "question" untuk isi soal.
+      2. "solution" untuk langkah-langkah penyelesaiannya secara detail.
+      3. "answer" untuk jawaban akhirnya saja.
+
       Pastikan hanya mengembalikan array JSON, tanpa teks atau format markdown tambahan.
+      Contoh:
+      [
+        {
+          "question": "Jika 2x + 5 = 15, berapakah nilai x?",
+          "solution": "1. Kurangi kedua sisi dengan 5: 2x = 15 - 5, sehingga 2x = 10. 2. Bagi kedua sisi dengan 2: x = 10 / 2. 3. Maka, x = 5.",
+          "answer": "x = 5"
+        }
+      ]
     `;
 
     const result = await model.generateContent(prompt);
@@ -56,16 +68,13 @@ export async function POST(req) {
       },
     });
 
-    // === PERBAIKAN ADA DI SINI ===
-    // Siapkan data soal untuk dihubungkan ke paket yang baru dibuat
     const dataToSave = questionsData.map(item => ({
       question: item.question,
       answer: item.answer,
-      // Ganti 'userId' dengan 'paketSoalId' yang benar
-      paketSoalId: newPaketSoal.id, 
+      solution: item.solution, // <-- TAMBAHKAN BARIS INI
+      paketSoalId: newPaketSoal.id,
     }));
 
-    // Simpan semua soal ke database menggunakan createMany
     await prisma.question.createMany({
       data: dataToSave,
     });
@@ -76,7 +85,7 @@ export async function POST(req) {
         id: newPaketSoal.id,
         topic: newPaketSoal.topic,
         createdAt: newPaketSoal.createdAt,
-        questions: questionsData
+        questions: questionsData // Kirim data lengkap ke frontend
     }, { status: 200 });
 
   } catch (error) {
