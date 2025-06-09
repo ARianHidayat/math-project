@@ -1,3 +1,5 @@
+// File: src/app/api/questions/route.js
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
@@ -11,7 +13,6 @@ export async function GET(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Cari user berdasarkan email dari session
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
@@ -20,29 +21,26 @@ export async function GET(req) {
       return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });
     }
 
-    // Ambil soal yang hanya milik user ini
-    const questions = await prisma.question.findMany({
+    // === PERUBAHAN LOGIKA DIMULAI DI SINI ===
+    // Ambil semua PaketSoal milik user, dan sertakan (include) semua soal di dalamnya.
+    const paketSoalList = await prisma.paketSoal.findMany({
       where: { userId: user.id },
-      orderBy: { created_at: "desc" },
-      select: {
-        id: true,
-        question: true,
-        answer: true,
-        created_at: true,
+      orderBy: { createdAt: "desc" },
+      include: {
+        questions: { // Sertakan semua data dari model Question yang terhubung
+          orderBy: {
+            id: 'asc' // Urutkan soal di dalam paket berdasarkan ID
+          }
+        },
       },
     });
 
-    if (!questions.length) {
+    if (!paketSoalList.length) {
       return NextResponse.json([], { status: 200 });
     }
 
-    // Format jawaban agar tampilannya rapi
-    const formattedQuestions = questions.map((q) => ({
-      ...q,
-      answer: q.answer.replace(/\n/g, "\n\n"),
-    }));
-
-    return NextResponse.json(formattedQuestions, { status: 200 });
+    return NextResponse.json(paketSoalList, { status: 200 });
+    
   } catch (error) {
     console.error("❌ Gagal mengambil data dari database (Prisma):", error);
     return NextResponse.json({ error: "Gagal mengambil data dari server" }, { status: 500 });

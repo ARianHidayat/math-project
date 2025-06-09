@@ -118,7 +118,7 @@ export default function GenerateQuestionPage() {
             {questions.map((item, index) => (
               <div key={index} className="card mb-3">
                 <div className="card-header">
-                  <h2 className="h5 font-semibold">Soal #{index + 1}</h2>
+                  <h2 className="h5 font-semibold">Soal {index + 1}</h2>
                 </div>
                 <div className="card-body">
                   <div className="mb-3">
