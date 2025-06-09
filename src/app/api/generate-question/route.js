@@ -5,50 +5,69 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+// Pastikan Anda menggunakan model yang mendukung output JSON, seperti model flash terbaru.
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
+  generationConfig: {
+    responseMimeType: "application/json",
+  },
+});
 
 export async function POST(req) {
   try {
-    console.log("📥 Menerima request...");
+    console.log("📥 Menerima request untuk generate banyak soal...");
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user || !session.user.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { topic } = await req.json();
+    // 1. Terima 'topic' dan 'numberOfQuestions' dari body request
+    const { topic, numberOfQuestions } = await req.json();
+    const count = numberOfQuestions || 5; // Default 5 soal jika tidak dispesifikasikan
 
     if (!topic) {
       return NextResponse.json({ error: "Topik tidak boleh kosong" }, { status: 400 });
     }
 
-    console.log("📌 Topik yang diterima:", topic);
+    console.log(`📌 Topik: "${topic}", Jumlah Soal: ${count}`);
 
-    // Generate soal dari Gemini
-    const result = await model.generateContent(`Buat soal matematika tentang ${topic} dan berikan jawabannya.`);
-    const fullResponse = result.response.text();
+    // 2. Buat prompt baru yang meminta output JSON
+    const prompt = `
+      Buat ${count} soal matematika tentang topik "${topic}".
+      Berikan respons dalam format JSON yang valid.
+      Struktur JSON harus berupa sebuah array, di mana setiap objek dalam array memiliki dua properti: "question" untuk soal dan "answer" untuk jawaban.
+      Pastikan hanya mengembalikan array JSON, tanpa teks atau format markdown tambahan.
+      Contoh:
+      [
+        {
+          "question": "Soal pertama...",
+          "answer": "Jawaban pertama..."
+        },
+        {
+          "question": "Soal kedua...",
+          "answer": "Jawaban kedua..."
+        }
+      ]
+    `;
 
-    console.log("📌 Output dari Gemini:", fullResponse);
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    console.log("🤖 Output mentah dari Gemini:", responseText);
 
-    // Pisahkan soal dan jawaban berdasarkan keyword yang digunakan oleh Gemini
-    const questionIndex = fullResponse.indexOf("**Soal:**");
-    const answerIndex = fullResponse.indexOf("**Jawaban:**");
-
-    let question = "";
-    let answer = "";
-
-    if (questionIndex !== -1 && answerIndex !== -1) {
-      question = fullResponse.substring(questionIndex + 8, answerIndex).trim();
-      answer = fullResponse.substring(answerIndex + 10).trim();
-    } else {
-      // Fallback jika format Gemini tidak sesuai
-      question = fullResponse;
-      answer = "Jawaban tidak ditemukan.";
+    // 3. Parsing respons JSON dari Gemini
+    let questionsData;
+    try {
+      questionsData = JSON.parse(responseText);
+    } catch (e) {
+      console.error("❌ Gagal mem-parsing JSON dari Gemini:", e);
+      return NextResponse.json({ error: "Gagal memproses respons dari AI. Coba lagi." }, { status: 500 });
     }
 
-    const cleanAnswer = answer.replace(/\n/g, "\n\n");
+    if (!Array.isArray(questionsData) || questionsData.length === 0) {
+      return NextResponse.json({ error: "Format respons dari AI tidak valid." }, { status: 500 });
+    }
 
-    // Cari user berdasarkan email
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
@@ -57,21 +76,26 @@ export async function POST(req) {
       return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });
     }
 
-    // Simpan soal ke database lewat Prisma
-    const saved = await prisma.question.create({
-      data: {
-        question,
-        answer: cleanAnswer,
-        userId: user.id,
-      },
+    // 4. Siapkan data untuk disimpan ke database
+    const dataToSave = questionsData.map(item => ({
+      question: item.question,
+      answer: item.answer,
+      userId: user.id,
+    }));
+
+    // 5. Simpan semua soal ke database menggunakan createMany
+    const savedResult = await prisma.question.createMany({
+      data: dataToSave,
+      skipDuplicates: true, // Opsional: untuk menghindari error jika ada duplikat
     });
 
-    console.log("✅ Soal berhasil disimpan:", saved);
+    console.log(`✅ ${savedResult.count} soal berhasil disimpan.`);
 
-    return NextResponse.json({ question, answer: cleanAnswer }, { status: 200 });
+    // 6. Kirim kembali array soal yang sudah dibuat
+    return NextResponse.json({ questions: questionsData }, { status: 200 });
 
   } catch (error) {
     console.error("❌ Terjadi kesalahan di server:", error);
-    return NextResponse.json({ error: "Terjadi kesalahan pada server" }, { status: 500 });
+    return NextResponse.json({ error: "Terjadi kesalahan pada server." }, { status: 500 });
   }
 }
