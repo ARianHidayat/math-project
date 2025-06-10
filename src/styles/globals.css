@@ -40,3 +40,30 @@ a {
     color-scheme: dark;
   }
 }
+
+/* CSS ini hanya akan aktif saat mode print */
+@media print {
+  /* Sembunyikan semua elemen di body kecuali yang akan kita print */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Tampilkan komponen print dan semua isinya */
+  .print-container,
+  .print-container * {
+    visibility: visible;
+  }
+
+  /* Posisikan komponen print di sudut kiri atas halaman */
+  .print-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* Sembunyikan bagian pengaturan di dalam LembarUjian saat print */
+  .d-print-none {
+    display: none !important;
+  }
+}
