@@ -19,7 +19,8 @@ export async function POST(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { topic, topics, numberOfQuestions } = await req.json();
+    // MODIFIKASI: Ambil juga 'questionType' dari body request
+    const { topic, topics, numberOfQuestions, questionType } = await req.json();
     const count = numberOfQuestions || 5;
 
     if (!topic && (!Array.isArray(topics) || topics.length === 0)) {
@@ -34,17 +35,15 @@ export async function POST(req) {
       return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });
     }
 
-    // --- MODIFIKASI UTAMA DIMULAI DI SINI ---
-
-    let mainInstruction; // Variabel untuk menyimpan instruksi utama
+    let prompt;
+    let mainInstruction;
     const isMultiTopic = topics && topics.length > 0;
 
+    // Langkah 1: Tentukan instruksi utama berdasarkan mode topik (single/multiple)
     if (isMultiTopic) {
-        // Logika untuk mode Materi Bervariasi (Multi-Topic)
         const numTopics = topics.length;
         const baseCountPerTopic = Math.floor(count / numTopics);
         let remainder = count % numTopics;
-
         let promptDetails = "";
         topics.forEach(t => {
             let countForThisTopic = baseCountPerTopic;
@@ -56,36 +55,55 @@ export async function POST(req) {
                promptDetails += `- ${countForThisTopic} soal tentang topik '${t}'.\n`;
             }
         });
-        
         mainInstruction = `Buat total ${count} soal matematika dengan rincian sebagai berikut:\n${promptDetails}`;
-
     } else {
-        // Logika untuk mode Topik Tunggal
         mainInstruction = `Buat ${count} soal matematika tentang topik "${topic}".`;
     }
 
-    // Template prompt yang sekarang konsisten untuk kedua mode
-    const prompt = `
-    ${mainInstruction}
-    Berikan respons dalam format JSON yang valid.
-    Struktur JSON harus berupa sebuah array, di mana setiap objek dalam array memiliki TIGA properti: 
-    1. "question" untuk isi soal.
-    2. "solution" untuk langkah-langkah penyelesaiannya secara detail.
-    3. "answer" untuk jawaban akhirnya saja.
+    // BARU: Langkah 2: Pilih template prompt berdasarkan tipe soal (essay/multiple_choice)
+    if (questionType === 'multiple_choice') {
+        // Prompt khusus untuk Pilihan Ganda
+        prompt = `
+        ${mainInstruction}
+        Jenis soal harus Pilihan Ganda.
+        Berikan respons dalam format JSON yang valid.
+        Struktur JSON harus berupa sebuah array, di mana setiap objek dalam array memiliki TIGA properti:
+        1. "question": (String) untuk isi soal.
+        2. "answer": (String) untuk jawaban yang BENAR.
+        3. "solution": (String) yang berisi JSON stringified dengan DUA properti:
+            a. "options": (Array of Strings) berisi 4 pilihan jawaban, SALAH SATUNYA harus sama persis dengan nilai "answer".
+            b. "explanation": (String) berisi langkah-langkah atau penjelasan kenapa jawaban itu benar.
 
-    Pastikan hanya mengembalikan array JSON, tanpa teks atau format markdown tambahan.
-    Contoh:
-    [
-      {
-        "question": "Jika 2x + 5 = 15, berapakah nilai x?",
-        "solution": "1. Kurangi kedua sisi dengan 5: 2x = 15 - 5, sehingga 2x = 10. 2. Bagi kedua sisi dengan 2: x = 10 / 2. 3. Maka, x = 5.",
-        "answer": "x = 5"
-      }
-    ]
-    `;
-    
-    // --- MODIFIKASI UTAMA SELESAI ---
+        Contoh format respons yang diinginkan:
+        [
+          {
+            "question": "Berapa hasil dari 7 x 6?",
+            "answer": "42",
+            "solution": "{\\"options\\":[\\"36\\",\\"42\\",\\"48\\",\\"54\\"],\\"explanation\\":\\"Perkalian 7 dengan 6 menghasilkan 42.\\"}"
+          }
+        ]
+        `;
+    } else {
+        // Prompt untuk Esai (seperti sebelumnya)
+        prompt = `
+        ${mainInstruction}
+        Jenis soal harus Esai.
+        Berikan respons dalam format JSON yang valid.
+        Struktur JSON harus berupa sebuah array, di mana setiap objek dalam array memiliki TIGA properti:
+        1. "question": (String) untuk isi soal.
+        2. "solution": (String) untuk langkah-langkah penyelesaiannya secara detail.
+        3. "answer": (String) untuk jawaban akhirnya saja.
 
+        Contoh format respons yang diinginkan:
+        [
+          {
+            "question": "Jika 2x + 5 = 15, berapakah nilai x?",
+            "solution": "1. Kurangi kedua sisi dengan 5: 2x = 15 - 5, sehingga 2x = 10. 2. Bagi kedua sisi dengan 2: x = 10 / 2. 3. Maka, x = 5.",
+            "answer": "x = 5"
+          }
+        ]
+        `;
+    }
 
     const result = await model.generateContent(prompt);
     const questionsData = JSON.parse(result.response.text());
