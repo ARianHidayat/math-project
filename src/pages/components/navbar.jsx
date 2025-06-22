@@ -28,15 +28,15 @@ export default function Navbar() {
         </button>
 
         <div className="collapse navbar-collapse" id="navbarTogglerDemo01">
-          <a className="navbar-brand" href="/">
+          <Link className="navbar-brand" href="/">
             <span className="navbar-brand mb-0 h1">SOMAT</span>
-          </a>
+          </Link>
 
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
               <button
                 className="nav-link btn btn-link text-white"
-                onClick={() => handleNavClick('/question-page')}
+                onClick={() => router.push('/question-page')}
               >
                 Buat Soal
               </button>
@@ -44,7 +44,7 @@ export default function Navbar() {
             <li className="nav-item">
               <button
                 className="nav-link btn btn-link text-white"
-                onClick={() => handleNavClick('/questions-output')}
+                onClick={() => router.push('/questions-output')}
               >
                 Riwayat
               </button>
