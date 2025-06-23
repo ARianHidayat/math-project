@@ -1,15 +1,14 @@
-// File: src/pages/components/LembarUjian.jsx
+// File: src/pages/components/LembarSoal.jsx
 
-import React from 'react'; // forwardRef tidak dibutuhkan lagi
-import ReactMarkdown from 'react-markdown';
+import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+// BARU: Impor mesin pintar kita
+import SmartQuestionDisplay from './SmartQuestionDisplay';
 
-// Ini sekarang menjadi komponen fungsional biasa
-const LembarUjian = ({ paket, schoolName, examTitle, logo }) => {
+const LembarSoal = ({ paket, schoolName, examTitle, logo }) => {
   return (
-    // ref tidak dibutuhkan lagi di sini
     <div className="p-4">
-      {/* Bagian Header Ujian */}
+      {/* Bagian Header tidak berubah */}
       <div className="exam-header text-center border-bottom border-dark pb-3 mb-4">
         <div className="d-flex justify-content-center align-items-center">
             {logo && <img src={logo} alt="School Logo" style={{ width: '70px', height: '70px', marginRight: '20px' }} />}
@@ -29,13 +28,9 @@ const LembarUjian = ({ paket, schoolName, examTitle, logo }) => {
       <div>
         <p className="fw-bold">Jawablah pertanyaan-pertanyaan di bawah ini dengan benar!</p>
         {paket.questions.map((q, index) => (
+          // MODIFIKASI: Gunakan komponen pintar kita di sini
           <div key={q.id} className="mb-4" style={{ pageBreakInside: 'avoid' }}>
-            <div className="d-flex align-items-start">
-              <span className="me-2">{index + 1}.</span>
-              <div className="w-100">
-                <ReactMarkdown>{q.question}</ReactMarkdown>
-              </div>
-            </div>
+            <SmartQuestionDisplay question={q} index={index} />
           </div>
         ))}
       </div>
@@ -43,6 +38,6 @@ const LembarUjian = ({ paket, schoolName, examTitle, logo }) => {
   );
 };
 
-LembarUjian.displayName = 'LembarUjian';
+LembarSoal.displayName = 'LembarSoal';
 
-export default LembarUjian;
+export default LembarSoal;

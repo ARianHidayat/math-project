@@ -1,3 +1,5 @@
+// kalau masih ada komentar ini, berarti kode ini masih belum digunakan atau diperlukan
+
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { prisma } from "@/lib/prisma";
