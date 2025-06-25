@@ -69,6 +69,7 @@ export default function GenerateQuestionPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(requestBody), 
+                credentials: 'include', // <--- TAMBAHKAN BARIS INI
             });
             if (!res.ok) throw new Error((await res.json()).error || "Gagal generate soal");
 
@@ -107,6 +108,7 @@ export default function GenerateQuestionPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(requestBody), 
+                credentials: 'include', // <--- TAMBAHKAN BARIS INI JUGA
             });
             if (!res.ok) throw new Error((await res.json()).error || "Gagal generate soal pengganti");
 

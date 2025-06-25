@@ -6,6 +6,9 @@ import LoginForm from "./components/loginForm";
 import Footer from "./components/footer";
 import { useRouter } from "next/router";
 import HomeCard from "./components/homecard";
+import InspirationalQuote from "./components/inspirationalQuotes";
+import HowItWorks from "./components/HowItWorks";
+import Testimonials from "./components/Testimonials";
 
 import Link from 'next/link';
 
@@ -49,6 +52,12 @@ export default function Home() {
 
           <HomeCard/>
 
+          <HowItWorks/>
+
+          <InspirationalQuote/>
+
+          <Testimonials/>
+
           <div className="text-center mt-5">
             <h5 className="my-4">Belum punya akun?</h5>
             <div className="mx-auto d-flex align-items-center justify-content-center">
@@ -87,6 +96,13 @@ export default function Home() {
             </div>
 
             <HomeCard/>
+
+            <HowItWorks/>
+
+
+            <InspirationalQuote/>
+
+            <Testimonials/>
 
           </div>
     <Footer/>

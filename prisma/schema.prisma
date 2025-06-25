@@ -18,29 +18,32 @@ model User {
   accounts      Account[]
   sessions      Session[]
   paketSoal     PaketSoal[]
+  quizSessions  QuizSession[] // Tambahkan relasi ke sesi kuis
 }
 
 model PaketSoal {
-  id        Int        @id @default(autoincrement())
-  topic     String
-  createdAt DateTime   @default(now())
-  userId    String
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  questions Question[]
+  id          Int        @id @default(autoincrement())
+  topic       String
+  createdAt   DateTime   @default(now())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questions   Question[]
 }
 
+// --- PERUBAHAN PENTING PADA MODEL QUESTION ---
 model Question {
-  id          Int      @id @default(autoincrement())
-  question    String   @db.Text
-  answer      String   @db.Text
-  
-  // --- PERBAIKAN DI SINI ---
-  // Tambahkan '?' untuk menandakan kolom ini opsional (boleh NULL)
-  solution    String?  @db.Text 
-  
-  createdAt   DateTime @default(now())
-  paketSoalId Int
-  paketSoal   PaketSoal @relation(fields: [paketSoalId], references: [id], onDelete: Cascade)
+  id            Int          @id @default(autoincrement())
+  questionText  String       @map("question") @db.Text // Mengubah 'question' jadi 'questionText', tetap pakai nama kolom lama di DB
+  optionA       String?      @db.Text // Pilihan A, opsional
+  optionB       String?      @db.Text // Pilihan B, opsional
+  optionC       String?      @db.Text // Pilihan C, opsional
+  optionD       String?      @db.Text // Pilihan D, opsional
+  correctAnswer String       @map("answer") @db.Text // Mengubah 'answer' jadi 'correctAnswer', tetap pakai nama kolom lama di DB
+  solution      String?      @db.Text
+  createdAt     DateTime     @default(now())
+  paketSoalId   Int
+  paketSoal     PaketSoal    @relation(fields: [paketSoalId], references: [id], onDelete: Cascade)
+  QuizAnswer    QuizAnswer[] // Relasi ke detail jawaban kuis
 }
 
 // Model-model lain untuk NextAuth (tidak ada perubahan)
@@ -76,4 +79,33 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// --- MODEL BARU UNTUK FITUR KUIS ---
+
+model QuizSession {
+  id             Int          @id @default(autoincrement())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startTime      DateTime     @default(now())
+  endTime        DateTime?
+  score          Int          @default(0)
+  totalQuestions Int          @default(0)
+  correctCount   Int          @default(0)
+  incorrectCount Int          @default(0)
+  status         String       @default("in_progress") // "in_progress", "completed", "cancelled"
+  QuizAnswers    QuizAnswer[]
+  createdAt      DateTime     @default(now()) // Tambahkan createdAt
+  updatedAt      DateTime     @updatedAt      // Tambahkan updatedAt
+}
+
+model QuizAnswer {
+  id            Int         @id @default(autoincrement())
+  quizSessionId Int
+  quizSession   QuizSession @relation(fields: [quizSessionId], references: [id], onDelete: Cascade)
+  questionId    Int
+  question      Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userAnswer    String?     @db.Text
+  isCorrect     Boolean     @default(false)
+  answeredAt    DateTime    @default(now())
 }

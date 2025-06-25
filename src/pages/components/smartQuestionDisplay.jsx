@@ -1,34 +1,36 @@
-// File: src/pages/components/SmartQuestionDisplay.jsx
+// LOKASI: src/pages/components/SmartQuestionDisplay.jsx
 
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from "react-markdown";
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
-// Komponen ini menerima 1 soal (question) dan nomornya (index)
-// Tugasnya adalah menampilkan soal + pilihan gandanya jika ada.
-const SmartQuestionDisplay = ({ question, index }) => {
-    let options = null;
-    try {
-        const parsedSolution = JSON.parse(question.solution);
-        if (Array.isArray(parsedSolution.options)) {
-            options = parsedSolution.options;
-        }
-    } catch (e) {
-        // Ini soal esai, biarkan options null
-    }
+// Komponen ini HANYA menampilkan pertanyaan dan pilihan (jika ada)
+export default function SmartQuestionDisplay({ question, index }) {
+    // Kumpulkan semua opsi yang ada (optionA, B, C, D) ke dalam array
+    const options = [
+        question.optionA,
+        question.optionB,
+        question.optionC,
+        question.optionD
+    ].filter(Boolean); // .filter(Boolean) untuk menghapus opsi yang null
 
     return (
-        <div className="d-flex align-items-start">
-            <span className="me-2 fw-bold">{index + 1}.</span>
-            <div className="w-100">
-                {/* Tampilkan isi pertanyaan */}
-                <ReactMarkdown>{question.question}</ReactMarkdown>
-                
-                {/* Jika ada options, tampilkan sebagai daftar A, B, C, D */}
-                {options && (
+        <>
+            <p className="fw-bold mb-2">📝 Soal #{index + 1}:</p>
+            <div className="p-3 bg-light rounded">
+                {/* Tampilkan teks soal dari properti yang BENAR: questionText */}
+                <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                    {question.questionText || "Teks soal tidak ditemukan."}
+                </ReactMarkdown>
+
+                {/* Jika ada opsi (soal pilihan ganda), tampilkan sebagai daftar */}
+                {options.length > 0 && (
                     <ol type="A" style={{ paddingLeft: '20px', marginTop: '10px' }}>
                         {options.map((option, i) => (
                             <li key={i}>
-                                <ReactMarkdown components={{ p: React.Fragment }}>
+                                <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]} components={{ p: React.Fragment }}>
                                     {option}
                                 </ReactMarkdown>
                             </li>
@@ -36,8 +38,6 @@ const SmartQuestionDisplay = ({ question, index }) => {
                     </ol>
                 )}
             </div>
-        </div>
+        </>
     );
-};
-
-export default SmartQuestionDisplay;
+}

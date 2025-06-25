@@ -1,26 +1,40 @@
+// LOKASI: src/pages/components/DraftQuestionCard.jsx
+// Gantikan seluruh isi file dengan kode ini.
+
 import React from 'react';
 import ReactMarkdown from "react-markdown";
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
 // Komponen kecil untuk menampilkan soal Esai atau Pilihan Ganda secara pintar
+// VERSI INI SUDAH DIPERBAIKI SESUAI STRUKTUR DATA DARI GEMINI & PRISMA
 const SmartQuestionDisplay = ({ question }) => {
-    let options = null;
-    try {
-        const parsedSolution = JSON.parse(question.solution);
-        if (Array.isArray(parsedSolution.options)) {
-            options = parsedSolution.options;
-        }
-    } catch (e) {
-        // Bukan soal PG, biarkan
-    }
+    // Kumpulkan semua opsi yang ada (optionA, optionB, dst.) ke dalam sebuah array
+    // .filter(Boolean) berguna untuk menghapus opsi yang null atau kosong (jika soalnya esai)
+    const options = [
+        question.optionA,
+        question.optionB,
+        question.optionC,
+        question.optionD
+    ].filter(Boolean);
 
     return (
         <div className="p-3 bg-light rounded">
-            <ReactMarkdown>{question.question}</ReactMarkdown>
-            {options && (
+            {/* Menampilkan teks soal dari properti yang BENAR: questionText */}
+            <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                {question.questionText || "Teks soal tidak ditemukan."}
+            </ReactMarkdown>
+
+            {/* Jika ada opsi (ini soal pilihan ganda), tampilkan sebagai daftar */}
+            {options.length > 0 && (
                 <ol type="A" style={{ paddingLeft: '20px', marginTop: '10px' }}>
                     {options.map((option, i) => (
                         <li key={i}>
-                            <ReactMarkdown components={{ p: React.Fragment }}>{option}</ReactMarkdown>
+                            {/* Gunakan ReactMarkdown agar format matematika (jika ada) bisa ditampilkan */}
+                            <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]} components={{ p: React.Fragment }}>
+                                {option}
+                            </ReactMarkdown>
                         </li>
                     ))}
                 </ol>
