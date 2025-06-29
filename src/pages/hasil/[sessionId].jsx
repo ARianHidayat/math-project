@@ -1,5 +1,5 @@
 // LOKASI: src/pages/hasil/[sessionId].jsx
-// Halaman ini menampilkan hasil akhir dari sesi kuis yang telah dikerjakan.
+// VERSI FINAL: Dengan kartu skor yang lebih menarik, pesan kontekstual, dan kode yang lengkap.
 
 import React from 'react';
 import Link from 'next/link';
@@ -10,6 +10,46 @@ import ReactMarkdown from "react-markdown";
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+
+// --- FUNGSI PINTAR UNTUK PESAN KONTEKSTUAL ---
+const getFeedbackMessage = (score) => {
+    if (score === 100) {
+        return {
+            title: "SEMPURNA! 🤩",
+            message: "Jenius! Semua jawaban benar. Kamu adalah master sejati di topik ini!",
+            icon: "🏆",
+            gradient: "linear-gradient(135deg, #ffc107, #ff9800)"
+        };
+    } else if (score >= 80) {
+        return {
+            title: "KEREN BANGET! ✨",
+            message: "Hampir sempurna! Sedikit lagi menuju puncak. Terus asah kemampuanmu!",
+            icon: "🚀",
+            gradient: "linear-gradient(135deg, #0d6efd, #0747a6)"
+        };
+    } else if (score >= 60) {
+        return {
+            title: "KERJA BAGUS! 😁",
+            message: "Sudah di atas rata-rata! Review lagi jawaban yang salah, kamu pasti bisa lebih baik lagi.",
+            icon: "💪",
+            gradient: "linear-gradient(135deg, #198754, #146c43)"
+        };
+    } else if (score >= 40) {
+        return {
+            title: "JANGAN MENYERAH! 🔥",
+            message: "Setiap kesalahan adalah pelajaran berharga. Jalan masih panjang, semangat terus!",
+            icon: "🧗",
+            gradient: "linear-gradient(135deg, #6c757d, #495057)"
+        };
+    } else {
+        return {
+            title: "AWAL YANG BAIK! 🌱",
+            message: "Jangan kecil hati. Dari sini kita mulai menanam. Gagal itu bumbu, coba lagi nanti lebih seru!",
+            icon: "💡",
+            gradient: "linear-gradient(135deg, #dc3545, #b02a37)"
+        };
+    }
+};
 
 // Komponen untuk menampilkan satu item hasil jawaban
 const ResultItem = ({ answerDetail, index }) => {
@@ -77,33 +117,49 @@ export default function HasilPage({ quizResult }) {
         );
     }
     
-    // Hitung persentase skor
-    const scorePercentage = quizResult.score;
+    // Dapatkan pesan dan style berdasarkan skor
+    const feedback = getFeedbackMessage(quizResult.score);
+    const paketId = quizResult.QuizAnswers[0]?.question.paketSoalId;
 
     return (
-        <div>
+        <div className='bg-light' style={{ minHeight: '100vh' }}>
             <Navbar />
-            <div className="container mt-5">
-                {/* Bagian Skor Utama */}
-                <div className="text-center p-5 mb-5 bg-light rounded-3 shadow">
-                    <h1 className="h4 text-muted">Skor Akhir Anda</h1>
-                    <p className="display-1 fw-bolder text-primary">{scorePercentage}</p>
-                    <p className="h5 fw-normal">
-                        Anda berhasil menjawab <strong>{quizResult.correctCount}</strong> dari <strong>{quizResult.totalQuestions}</strong> soal dengan benar.
+            <div className="container py-5">
+                {/* === KARTU SKOR BARU YANG LEBIH MENARIK === */}
+                <div 
+                    className="text-center p-5 mb-5 rounded-3 shadow text-white"
+                    style={{ background: feedback.gradient }}
+                >
+                    <div className="display-1 mb-3">{feedback.icon}</div>
+                    <h1 className="h2 fw-bold">{feedback.title}</h1>
+                    <p className="lead">{feedback.message}</p>
+                    <hr className='my-4 border-white-50' />
+                    <h3 className="h5 text-white-75 mb-0">Skor Akhir Anda</h3>
+                    <p className="display-2 fw-bolder">{quizResult.score}</p>
+                    <p className="h6 fw-normal">
+                        (Menjawab <strong>{quizResult.correctCount}</strong> dari <strong>{quizResult.totalQuestions}</strong> soal dengan benar)
                     </p>
                 </div>
+                {/* === AKHIR DARI KARTU SKOR BARU === */}
+
 
                 {/* Bagian Rincian Jawaban */}
-                <h2 className="h3 text-center mb-4">Rincian Jawaban</h2>
+                <h2 className="h3 text-center mb-4 text-dark">Rincian Jawaban</h2>
                 {quizResult.QuizAnswers.map((answer, index) => (
                     <ResultItem key={answer.id} answerDetail={answer} index={index} />
                 ))}
                 
                 {/* Tombol Aksi */}
-                <div className="text-center my-5">
-                  <Link href="/questions-output" className="btn btn-primary btn-lg">
-                      Selesai & Kembali ke Riwayat
-                  </Link>
+                <div className="text-center my-5 d-flex justify-content-center gap-3">
+                    {/* Tombol "Ulangi Latihan" hanya muncul jika kita berhasil mendapatkan paketId */}
+                    {paketId && (
+                        <Link href={`/latihan/${paketId}`} className="btn btn-outline-primary btn-lg">
+                            Ulangi Latihan
+                        </Link>
+                    )}
+                    <Link href="/questions-output" className="btn btn-primary btn-lg">
+                        Selesai & Kembali ke Riwayat
+                    </Link>
                 </div>
             </div>
         </div>

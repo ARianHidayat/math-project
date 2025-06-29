@@ -1,87 +1,138 @@
 // LOKASI: src/pages/questions-output/index.jsx
-// VERSI BARU: Dengan logika redirect yang aman jika pengguna belum login.
+// VERSI DIPERBAIKI: Struktur tombol hapus telah diperbaiki untuk menghindari nesting error.
 
 import React, { useEffect, useState } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { useSession, signIn } from "next-auth/react"; // Impor useSession dan signIn
+import { useSession, signIn } from "next-auth/react";
+import Link from 'next/link';
+import { BsCalendarDate, BsHash, BsTrash } from "react-icons/bs";
 
-// Impor komponen Anda
 import Navbar from "../components/navbar";
 import PaketSoalCard from "../components/PaketSoalCard";
 import ScrollToTopButton from "../components/ScrollToTopButton";
 
+const DeleteConfirmationModal = ({ show, onHide, onConfirm, isDeleting, paketTopic }) => {
+    if (!show) return null;
+    return (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content">
+                    <div className="modal-header"><h5 className="modal-title">Konfirmasi Hapus</h5><button type="button" className="btn-close" onClick={onHide} disabled={isDeleting}></button></div>
+                    <div className="modal-body">
+                        <p>Apakah Anda yakin ingin menghapus paket soal dengan topik:</p><p className="fw-bold">"{paketTopic}"?</p>
+                        <p className="text-danger small">Tindakan ini tidak dapat diurungkan.</p>
+                    </div>
+                    <div className="modal-footer"><button type="button" className="btn btn-secondary" onClick={onHide} disabled={isDeleting}>Batal</button><button type="button" className="btn btn-danger" onClick={onConfirm} disabled={isDeleting}>{isDeleting ? 'Menghapus...' : 'Ya, Hapus'}</button></div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const SummaryIcon = ({ icon: Icon, text }) => (
+    <div className="d-flex align-items-center text-muted me-3"><Icon className="me-2" size={16} /><small>{text}</small></div>
+);
+
 export default function QuestionsOutputPage() {
-    const { data: session, status } = useSession(); // Gunakan useSession untuk cek status
+    const { data: session, status } = useSession();
     const [paketSoalList, setPaketSoalList] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [paketToDelete, setPaketToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     
-    useEffect(() => {
-        // Impor bootstrap JS di client-side
-        import('bootstrap/dist/js/bootstrap.bundle.min.js');
-
-        // === LOGIKA PERLINDUNGAN HALAMAN ===
-        // Jika status BUKAN 'loading' dan pengguna TIDAK terautentikasi...
-        if (status !== "loading" && status === "unauthenticated") {
-            // ...gunakan fungsi signIn() dari NextAuth untuk redirect yang benar.
-            signIn();
-            return; // Hentikan eksekusi lebih lanjut
+    const fetchPaketSoal = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch("/api/questions");
+            if (!response.ok) throw new Error("Gagal mengambil data");
+            const data = await response.json();
+            setPaketSoalList(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Gagal mengambil data paket soal:", error);
+        } finally {
+            setLoading(false);
         }
-        
-        // Jika pengguna sudah terautentikasi, baru ambil data
+    };
+
+    useEffect(() => {
+        import('bootstrap/dist/js/bootstrap.bundle.min.js');
+        if (status !== "loading" && status === "unauthenticated") {
+            signIn();
+            return;
+        }
         if (status === "authenticated") {
-            async function fetchPaketSoal() {
-                try {
-                    const response = await fetch("/api/questions");
-                    if (!response.ok) throw new Error("Gagal mengambil data");
-                    const data = await response.json();
-                    setPaketSoalList(Array.isArray(data) ? data : []);
-                } catch (error) {
-                    console.error("Gagal mengambil data paket soal:", error);
-                    setPaketSoalList([]);
-                } finally {
-                    setLoading(false);
-                }
-            }
             fetchPaketSoal();
         }
+    }, [status]);
 
-    }, [status]); // useEffect akan berjalan setiap kali status berubah
+    const handleOpenDeleteModal = (paket) => {
+        setPaketToDelete(paket);
+        setShowDeleteModal(true);
+    };
 
-    // Tampilkan pesan loading saat sesi sedang diperiksa atau data diambil
-    if (status === "loading" || loading) {
-        return (
-             <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
-                <div>Memuat Riwayat Soal...</div>
-            </div>
-        );
+    const handleCloseDeleteModal = () => {
+        setPaketToDelete(null);
+        setShowDeleteModal(false);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!paketToDelete) return;
+        setIsDeleting(true);
+        try {
+            await fetch(`/api/paket/${paketToDelete.id}`, { method: 'DELETE' });
+            setPaketSoalList(prevList => prevList.filter(p => p.id !== paketToDelete.id));
+            handleCloseDeleteModal();
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    if (status === "loading" || (status === "authenticated" && loading)) {
+        return <div className="d-flex justify-content-center align-items-center vh-100"><div>Memuat Riwayat Soal...</div></div>;
     }
-    
-    // Jika tidak diautentikasi, jangan render apa pun
-    if (status === "unauthenticated") {
-        return null;
-    }
+    if (status === "unauthenticated") return null;
 
     return (
-        <div className="mx-auto">
+        <div className="bg-light" style={{ minHeight: '100vh' }}>
             <Navbar />
-            <div className="container mt-5">
-                <h1 className="h2 fw-bold text-center mb-5">Riwayat Paket Soal</h1>
-                
+            <div className="container py-5">
+                <div className="text-center mb-5"><h1 className="display-6 fw-bold">Riwayat Anda</h1><p className="lead text-muted">Semua paket soal Anda tersimpan di sini.</p></div>
                 {paketSoalList.length === 0 ? (
-                    <div className="text-center text-muted card p-5 shadow-sm">
-                        <p className="h5">Anda belum memiliki riwayat.</p>
-                        <p>Mulai buat paket soal pertama Anda dan riwayatnya akan muncul di sini.</p>
+                    <div className="text-center card p-5 shadow-sm border-0">
+                        <h2 className="h4 fw-bold">Riwayat Masih Kosong</h2><p className="text-muted mb-4">Mulai buat paket soal dan riwayatnya akan muncul di sini.</p>
+                        <div className="d-flex justify-content-center"><Link href="/question-page" className="btn btn-primary btn-lg">🚀 Buat Paket Soal Pertama Anda</Link></div>
                     </div>
                 ) : (
-                    <div className="d-flex flex-column gap-4">
-                        {/* Loop untuk menampilkan setiap paket soal */}
-                        {paketSoalList.map((paket) => (
-                            <PaketSoalCard key={paket.id} paket={paket} />
+                    <div className="accordion shadow-sm" id="riwayatAccordion">
+                        {paketSoalList.map((paket, index) => (
+                            <div className="accordion-item" key={paket.id}>
+                                <h2 className="accordion-header d-flex align-items-center" id={`heading-${paket.id}`}>
+                                    <button className={`accordion-button ${index !== 0 ? 'collapsed' : ''}`} type="button" data-bs-toggle="collapse" data-bs-target={`#collapse-${paket.id}`} aria-expanded={index === 0} aria-controls={`collapse-${paket.id}`} style={{ flexGrow: 1 }}>
+                                        <div>
+                                            <span className="fw-bolder fs-5 text-dark">{paket.topic}</span>
+                                            <div className="d-flex flex-wrap mt-2">
+                                                <SummaryIcon icon={BsCalendarDate} text={new Date(paket.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} />
+                                                <SummaryIcon icon={BsHash} text={`${paket.questions.length} Soal`} />
+                                            </div>
+                                        </div>
+                                    </button>
+                                    <button className="btn btn-sm btn-outline-danger ms-2 me-3" onClick={() => handleOpenDeleteModal(paket)} title="Hapus Paket Soal">
+                                        <BsTrash />
+                                    </button>
+                                </h2>
+                                <div id={`collapse-${paket.id}`} className={`accordion-collapse collapse ${index === 0 ? 'show' : ''}`} aria-labelledby={`heading-${paket.id}`} data-bs-parent="#riwayatAccordion">
+                                    <div className="accordion-body p-0"><PaketSoalCard paket={paket} /></div>
+                                </div>
+                            </div>
                         ))}
                     </div>
                 )}
             </div>
             <ScrollToTopButton/>
+            <DeleteConfirmationModal show={showDeleteModal} onHide={handleCloseDeleteModal} onConfirm={handleConfirmDelete} isDeleting={isDeleting} paketTopic={paketToDelete?.topic} />
         </div>
     );
 }

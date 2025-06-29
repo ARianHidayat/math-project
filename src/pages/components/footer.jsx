@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="bg-primary text-light py-4 mt-5">
       <div className="container d-flex flex-column flex-md-row justify-content-between align-items-center">
         <p className="mb-2 mb-md-0">&copy; {new Date().getFullYear()} SOMAT. All rights reserved.</p>
-        <ul className="list-inline mb-0">
+        {/* <ul className="list-inline mb-0">
           <li className="list-inline-item">
             <Link href="/" className="text-light text-decoration-none">Beranda</Link>
           </li>
@@ -19,7 +19,7 @@ export default function Footer() {
           <li className="list-inline-item">
             <Link href="mailto:kontak@somat.id" className="text-light text-decoration-none">Kontak</Link>
           </li>
-        </ul>
+        </ul> */}
       </div>
     </footer>
   );

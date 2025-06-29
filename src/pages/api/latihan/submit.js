@@ -1,5 +1,5 @@
 // LOKASI: src/pages/api/latihan/submit.js
-// VERSI BARU: Dengan logika koreksi pintar untuk soal esai.
+// VERSI BARU: Dengan logika koreksi yang lebih canggih untuk menangani urutan angka dan teks.
 
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from "next-auth/next";
@@ -7,24 +7,32 @@ import { authOptions } from "../auth/[...nextauth]";
 
 const prisma = new PrismaClient();
 
-// FUNGSI BARU: Untuk membersihkan dan mengekstrak angka dari teks
-function normalizeAnswer(text) {
-    if (typeof text !== 'string' || !text) return "";
-    
-    // Ganti koma desimal (gaya Indonesia) dengan titik desimal
-    let cleanText = text.replace(/,/g, '.');
-    
-    // Ambil semua angka, tanda minus di depan, dan titik desimal.
-    // Ini akan mengubah "Jawaban: -25.5 cm" menjadi "-25.5"
-    const matches = cleanText.match(/-?\d+(\.\d+)?/g);
-    
-    // Jika tidak ada angka yang ditemukan, kembalikan teks asli yang sudah dibersihkan dari spasi
-    if (!matches) {
-        return text.trim().toLowerCase();
+// FUNGSI PINTAR BARU: Untuk membersihkan dan menormalkan jawaban
+function normalizeAndCompare(userAnswer, correctAnswer) {
+    if (typeof userAnswer !== 'string' || typeof correctAnswer !== 'string' || !userAnswer) {
+        return false;
     }
-    
-    // Gabungkan semua angka yang ditemukan (jika ada lebih dari satu)
-    return matches.join('');
+
+    // Fungsi untuk mengekstrak dan mengurutkan angka
+    const extractAndSortNumbers = (text) => {
+        const numbers = text.match(/-?\d+(\.\d+)?/g);
+        if (!numbers) return null;
+        return numbers.map(Number).sort((a, b) => a - b).toString();
+    };
+
+    const userNumbers = extractAndSortNumbers(userAnswer);
+    const correctNumbers = extractAndSortNumbers(correctAnswer);
+
+    // Prioritas 1: Bandingkan angka jika ada
+    if (userNumbers && correctNumbers) {
+        return userNumbers === correctNumbers;
+    }
+
+    // Prioritas 2: Jika tidak ada angka, bandingkan teks yang sudah dibersihkan
+    const cleanUserAnswer = userAnswer.trim().toLowerCase().replace(/\s+/g, ' ');
+    const cleanCorrectAnswer = correctAnswer.trim().toLowerCase().replace(/\s+/g, ' ');
+
+    return cleanUserAnswer === cleanCorrectAnswer;
 }
 
 
@@ -52,34 +60,29 @@ export default async function handler(req, res) {
     const answerDetails = [];
 
     for (const question of questionsFromDb) {
-        const userAnswer = userAnswers[question.id] || null;
+        const userAnswerText = userAnswers[question.id] || null;
         let isCorrect = false;
 
-        // --- LOGIKA PENILAIAN BARU ---
-        if (userAnswer) {
-            // Jika soal PG, bandingkan seperti biasa (case-insensitive)
-            if (question.optionA) {
-                if (question.correctAnswer.toUpperCase() === userAnswer.toUpperCase()) {
+        // --- LOGIKA PENILAIAN BARU MENGGUNAKAN FUNGSI PINTAR ---
+        if (userAnswerText) {
+            // Jika soal Pilihan Ganda, tetap gunakan perbandingan sederhana
+            if (question.optionA) { 
+                if (question.correctAnswer.toUpperCase() === userAnswerText.toUpperCase()) {
                     isCorrect = true;
                 }
-            } else { // Jika soal esai, gunakan koreksi pintar
-                const normalizedUserAnswer = normalizeAnswer(userAnswer);
-                const normalizedCorrectAnswer = normalizeAnswer(question.correctAnswer);
-                
-                if (normalizedUserAnswer && normalizedCorrectAnswer && normalizedUserAnswer === normalizedCorrectAnswer) {
-                    isCorrect = true;
-                }
+            } else { // Jika soal Esai, gunakan fungsi perbandingan pintar kita
+                isCorrect = normalizeAndCompare(userAnswerText, question.correctAnswer);
             }
         }
         
         if(isCorrect) {
             correctCount++;
         }
-        // --- AKHIR LOGIKA PENILAIAN BARU ---
+        // --- AKHIR DARI LOGIKA PENILAIAN BARU ---
         
         answerDetails.push({
             questionId: question.id,
-            userAnswer: userAnswer,
+            userAnswer: userAnswerText,
             isCorrect: isCorrect,
         });
     }
