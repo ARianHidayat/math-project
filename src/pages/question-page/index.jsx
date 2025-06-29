@@ -1,19 +1,18 @@
-// File: question-page/index.jsx
+// LOKASI: src/pages/question-page/index.jsx
+// VERSI FINAL: Menggabungkan semua logika Anda dengan perbaikan redirect.
 
-"use client";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
-import { v4 as uuidv4 } from 'uuid'; // BARU: Impor uuid untuk ID sementara
+import { useSession, signIn } from "next-auth/react"; // Pastikan signIn diimpor
+import { v4 as uuidv4 } from 'uuid';
 
+// Impor semua komponen Anda
 import Navbar from '@/pages/components/navbar';
 import PaketSoalCard from '@/pages/components/PaketSoalCard';
 import TagInput from '@/pages/components/TagInput';
-import DraftQuestionCard from '@/pages/components/DraftQuestionCard'; // BARU: Impor komponen kartu draft
+import DraftQuestionCard from '@/pages/components/DraftQuestionCard';
 
 export default function GenerateQuestionPage() {
-    const router = useRouter();
     const { data: session, status } = useSession();
 
     // --- State untuk Form Input ---
@@ -24,23 +23,24 @@ export default function GenerateQuestionPage() {
     const [numQuestions, setNumQuestions] = useState(5);
 
     // --- State untuk Proses & Hasil ---
-    const [loading, setLoading] = useState(false); // Untuk generate awal
-    const [isSaving, setIsSaving] = useState(false); // BARU: Untuk proses menyimpan
-    const [isReplacing, setIsReplacing] = useState(false); // BARU: Untuk proses ganti soal
+    const [loading, setLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isReplacing, setIsReplacing] = useState(false);
     const [error, setError] = useState("");
-    
-    // MODIFIKASI: State ini sekarang menampung "DRAFT" atau paket final
     const [paketSoal, setPaketSoal] = useState(null);
-    // BARU: State untuk menandakan apakah kita sedang dalam mode editor
     const [isDraftMode, setIsDraftMode] = useState(false); 
 
     useEffect(() => {
         import('bootstrap/dist/js/bootstrap.bundle.min.js');
-        if (status === "unauthenticated") {
-            router.push("/login");
+        
+        // LOGIKA PERBAIKAN: Jika status sudah selesai dicek dan pengguna tidak login,
+        // panggil fungsi signIn() dari NextAuth untuk redirect yang benar.
+        if (status !== "loading" && status === "unauthenticated") {
+            signIn();
         }
-    }, [status, router]);
+    }, [status]);
 
+    // Tampilkan pesan loading saat sesi sedang diperiksa
     if (status === "loading") {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
@@ -48,9 +48,13 @@ export default function GenerateQuestionPage() {
             </div>
         );
     }
-    if (!session) { return null; }
+    
+    // Jika tidak diautentikasi, jangan render apa pun, biarkan proses redirect berjalan.
+    if (status === "unauthenticated") {
+        return null;
+    }
 
-    // --- KUMPULAN FUNGSI UNTUK FITUR EDITOR ---
+    // --- KUMPULAN FUNGSI LENGKAP ANDA ---
 
     const handleGenerateDraft = async () => {
         setLoading(true);
@@ -69,7 +73,7 @@ export default function GenerateQuestionPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(requestBody), 
-                credentials: 'include', // <--- TAMBAHKAN BARIS INI
+                credentials: 'include',
             });
             if (!res.ok) throw new Error((await res.json()).error || "Gagal generate soal");
 
@@ -108,7 +112,7 @@ export default function GenerateQuestionPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(requestBody), 
-                credentials: 'include', // <--- TAMBAHKAN BARIS INI JUGA
+                credentials: 'include',
             });
             if (!res.ok) throw new Error((await res.json()).error || "Gagal generate soal pengganti");
 
@@ -142,7 +146,8 @@ export default function GenerateQuestionPage() {
             const res = await fetch("/api/save-paket", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ topic: displayTopic, questions: finalQuestions }), 
+                body: JSON.stringify({ topic: displayTopic, questions: finalQuestions }),
+                credentials: 'include', // Jangan lupa tambahkan ini juga
             });
             if (!res.ok) throw new Error((await res.json()).error || "Gagal menyimpan paket soal");
 
@@ -157,14 +162,13 @@ export default function GenerateQuestionPage() {
         }
     };
 
-    // --- TAMPILAN JSX ---
+    // --- TAMPILAN JSX LENGKAP ANDA ---
     return (
         <div className='mx-auto'>
             <Navbar />
             <div className="container mt-5">
                 <h1 className="h3 fw-bold mb-4 text-center">Buat Soal Matematika Otomatis</h1>
                 
-                {/* Form Input hanya tampil jika TIDAK dalam mode draft */}
                 {!isDraftMode && (
                     <>
                         <div className="d-flex justify-content-center mb-4">
@@ -212,7 +216,6 @@ export default function GenerateQuestionPage() {
                 {loading && <div className="text-center">Membuat soal, mohon tunggu...</div>}
                 {error && <p className="alert alert-danger text-center">{error}</p>}
 
-                {/* Tampilan Hasil (Draft atau Final) */}
                 {paketSoal && (
                     <div className="mt-4">
                         <h2 className="h4 text-center mb-3">

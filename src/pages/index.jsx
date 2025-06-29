@@ -1,111 +1,76 @@
-import { useSession, signIn, signOut } from "next-auth/react";
-// import { useSelector, useDispatch} from "react-redux";
-// import {increment, decrement, reset} from "@/redux/counterSlice";
+// LOKASI: src/pages/index.js
+// VERSI BARU: Mengadaptasi komponen HeroSection ke dalam struktur kode Anda yang sudah ada.
+
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
+import Link from 'next/link'; // <-- PERBAIKAN: Baris ini telah ditambahkan
+
+// Impor semua komponen yang Anda gunakan
 import Navbar from "./components/navbar";
 import LoginForm from "./components/loginForm";
 import Footer from "./components/footer";
-import { useRouter } from "next/router";
-import HomeCard from "./components/homecard";
-import InspirationalQuote from "./components/inspirationalQuotes";
+import HomeCard from "./components/HomeCard";
+import InspirationalQuote from "./components/InspirationalQuotes";
 import HowItWorks from "./components/HowItWorks";
-import Testimonials from "./components/Testimonials";
-
-import Link from 'next/link';
-
+import HeroSection from "./components/HeroSection"; // <-- Impor komponen baru kita
+import ScrollToTopButton from "./components/ScrollToTopButton";
 
 export default function Home() {
-  // const count = useSelector((state) => state.counter.value);
-  // const dispatch = useDispatch();
-  const { data: session,status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
-
+  // Fungsi logika handleNavClick Anda tetap dipertahankan
   const handleNavClick = (path) => {
     if (!session) {
-      router.push('/auth/signin'); // 🔁 Ganti sesuai halaman login kamu
+      router.push('/auth/signin');
     } else {
       router.push(path);
     }
   };
 
   if (status === "loading") {
-    return <p>Loading...</p>;
+    return <div className="text-center p-5">Loading...</div>;
   }
 
-  if (!session) {
-    return (
-      <div>
-        <Navbar/>
-        <div className="container py-5">
-          <div className="text-center mb-5 pb-5">
-            <h1 className="display-4">Selamat Datang di SOLMATE</h1>
-            <p className="lead">Platform Pembuatan Soal Matematika Otomatis</p>
-            <p className="text-muted">Buat soal dengan cepat, simpan, dan unduh sesuai kebutuhanmu.</p>
-            <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => handleNavClick('/question-page')}
-            >
-              Buat Soal
-            </button>
-          </div>
-
-          <HomeCard/>
-
-          <HowItWorks/>
-
-          <InspirationalQuote/>
-
-          <Testimonials/>
-
-          <div className="text-center mt-5">
-            <h5 className="my-4">Belum punya akun?</h5>
-            <div className="mx-auto d-flex align-items-center justify-content-center">
-              <LoginForm/>
-            </div> 
-          </div>
-        </div>
-        <Footer/>
-      </div>
-    );
-  }
-
+  // Sekarang kita gunakan satu return statement yang lebih bersih
   return (
-    <div className="mx-auto">
-    <Navbar/>
-    <div className="container-fluid">
-      {/* <h1>ini untuk page home</h1>
-      <div>
-        <h1>Halo, {session.user.email}</h1>
-        <button onClick={() => signOut()}>Logout</button>
-      </div> */}
-      </div>
-              <div className="container py-5">
-            <div className="text-center mb-5 pb-5">
-              <h3>Halo, {session.user.email}</h3>
-              <h1 className="display-4">Selamat Datang di SOLMATE</h1>
-              <p className="lead">Platform Pembuatan Soal Matematika Otomatis</p>
-              <p className="text-muted">Buat soal dengan cepat, simpan, dan unduh sesuai kebutuhanmu.</p>
-              <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => handleNavClick('/question-page')}
-              >
-                Buat Soal
-              </button>
+    <div>
+      <Navbar />
+
+      {/*
+        PANGGIL KOMPONEN HERO BARU DI SINI.
+        Komponen ini akan secara otomatis menampilkan sapaan yang berbeda
+        tergantung apakah pengguna sudah login atau belum.
+      */}
+      <HeroSection session={session} handleNavClick={handleNavClick} />
+      
+      {/* Bagian ini akan selalu tampil, baik sudah login maupun belum */}
+      <div className="container py-5">
+        <HomeCard />
+        <HowItWorks />
+        <InspirationalQuote />
+
+        {/*
+          Tampilkan form login HANYA JIKA pengguna belum login.
+          Ini menggantikan struktur if/else Anda yang sebelumnya.
+        */}
+        {!session && (
+          <div className="text-center my-5 py-5 border-top border-bottom">
+            <div className="container">
+                <h2 className="fw-bold">Siap Menjadi Ahli Matematika?</h2>
+                <p className="lead text-muted col-lg-8 mx-auto">
+                    Buat akun gratis untuk menyimpan semua paket soal, melihat riwayat latihan, dan mengakses semua fitur canggih SOLMATE.
+                </p>
+                <Link href="/auth/signin" className="btn btn-primary btn-lg ...">
+                    Masuk atau Daftar Gratis
+                </Link>
             </div>
-
-            <HomeCard/>
-
-            <HowItWorks/>
-
-
-            <InspirationalQuote/>
-
-            <Testimonials/>
-
           </div>
-    <Footer/>
+        )}
+      </div>
+
+      <Footer />
+      <ScrollToTopButton/>
     </div>
   );
 }
