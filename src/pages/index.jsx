@@ -7,14 +7,14 @@ import { useRouter } from "next/router";
 import Link from 'next/link'; // <-- PERBAIKAN: Baris ini telah ditambahkan
 
 // Impor semua komponen yang Anda gunakan
-import Navbar from "./components/navbar";
-import LoginForm from "./components/loginForm";
-import Footer from "./components/footer";
-import HomeCard from "./components/HomeCard";
-import InspirationalQuote from "./components/InspirationalQuotes";
-import HowItWorks from "./components/HowItWorks";
-import HeroSection from "./components/HeroSection"; // <-- Impor komponen baru kita
-import ScrollToTopButton from "./components/ScrollToTopButton";
+import Navbar from "../components/navbar";
+import LoginForm from "../components/loginForm";
+import Footer from "../components/footer";
+import HomeCard from "../components/HomeCard";
+import InspirationalQuote from "../components/InspirationalQuotes";
+import HowItWorks from "../components/HowItWorks";
+import HeroSection from "../components/HeroSection"; // <-- Impor komponen baru kita
+import ScrollToTopButton from "../components/ScrollToTopButton";
 
 export default function Home() {
   const { data: session, status } = useSession();

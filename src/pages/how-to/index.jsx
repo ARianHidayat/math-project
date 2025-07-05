@@ -3,9 +3,9 @@
 
 import React, { useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import Navbar from '../components/navbar';
-import Footer from '../components/footer';
-import ScrollToTopButton from '../components/ScrollToTopButton';
+import Navbar from '../../components/navbar';
+import Footer from '../../components/footer';
+import ScrollToTopButton from '../../components/ScrollToTopButton';
 
 // Data untuk FAQ. Sangat mudah untuk menambah, mengubah, atau menghapus pertanyaan.
 const faqData = [

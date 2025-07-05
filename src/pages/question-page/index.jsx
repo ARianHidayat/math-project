@@ -7,10 +7,10 @@ import { useSession, signIn } from "next-auth/react";
 import { v4 as uuidv4 } from 'uuid';
 
 // Impor semua komponen Anda
-import Navbar from '@/pages/components/navbar';
-import PaketSoalCard from '@/pages/components/PaketSoalCard';
-import TagInput from '@/pages/components/TagInput';
-import DraftQuestionCard from '@/pages/components/DraftQuestionCard';
+import Navbar from '@/components/navbar';
+import PaketSoalCard from '@/components/PaketSoalCard';
+import TagInput from '@/components/TagInput';
+import DraftQuestionCard from '@/components/DraftQuestionCard';
 
 export default function GenerateQuestionPage() {
     const { data: session, status } = useSession();

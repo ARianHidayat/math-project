@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { PrismaClient } from '@prisma/client';
-import Navbar from '../components/navbar';
+import Navbar from '../../components/navbar';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import ReactMarkdown from "react-markdown";
 import remarkMath from 'remark-math';

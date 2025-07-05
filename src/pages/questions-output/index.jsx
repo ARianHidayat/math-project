@@ -7,9 +7,9 @@ import { useSession, signIn } from "next-auth/react";
 import Link from 'next/link';
 import { BsCalendarDate, BsHash, BsTrash } from "react-icons/bs";
 
-import Navbar from "../components/navbar";
-import PaketSoalCard from "../components/PaketSoalCard";
-import ScrollToTopButton from "../components/ScrollToTopButton";
+import Navbar from "../../components/navbar";
+import PaketSoalCard from "../../components/PaketSoalCard";
+import ScrollToTopButton from "../../components/ScrollToTopButton";
 
 const DeleteConfirmationModal = ({ show, onHide, onConfirm, isDeleting, paketTopic }) => {
     if (!show) return null;
