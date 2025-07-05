@@ -1,5 +1,6 @@
 // LOKASI: src/pages/index.js
 // VERSI BARU: Mengadaptasi komponen HeroSection ke dalam struktur kode Anda yang sudah ada.
+// update perbaikan nama file
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
