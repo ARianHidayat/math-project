@@ -1,11 +1,12 @@
 // LOKASI: src/pages/questions-output/index.jsx
-// VERSI DIPERBAIKI: Struktur tombol hapus telah diperbaiki untuk menghindari nesting error.
+// VERSI FINAL: Memperbaiki error Link component
 
 import React, { useEffect, useState } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useSession, signIn } from "next-auth/react";
 import Link from 'next/link';
-import { BsCalendarDate, BsHash, BsTrash } from "react-icons/bs";
+import { useRouter } from 'next/router';
+import { BsCalendarDate, BsHash, BsTrash, BsPrinter } from "react-icons/bs";
 
 import Navbar from "../../components/navbar";
 import PaketSoalCard from "../../components/PaketSoalCard";
@@ -93,7 +94,6 @@ export default function QuestionsOutputPage() {
     if (status === "loading" || (status === "authenticated" && loading)) {
         return <div className="d-flex justify-content-center align-items-center vh-100"><div>Memuat Riwayat Soal...</div></div>;
     }
-    if (status === "unauthenticated") return null;
 
     return (
         <div className="bg-light" style={{ minHeight: '100vh' }}>
@@ -110,7 +110,7 @@ export default function QuestionsOutputPage() {
                         {paketSoalList.map((paket, index) => (
                             <div className="accordion-item" key={paket.id}>
                                 <h2 className="accordion-header d-flex align-items-center" id={`heading-${paket.id}`}>
-                                    <button className={`accordion-button ${index !== 0 ? 'collapsed' : ''}`} type="button" data-bs-toggle="collapse" data-bs-target={`#collapse-${paket.id}`} aria-expanded={index === 0} aria-controls={`collapse-${paket.id}`} style={{ flexGrow: 1 }}>
+                                    <button className={`accordion-button ${index !== 0 ? 'collapsed' : ''}`} type="button" data-bs-toggle="collapse" data-bs-target={`#collapse-${paket.id}`}>
                                         <div>
                                             <span className="fw-bolder fs-5 text-dark">{paket.topic}</span>
                                             <div className="d-flex flex-wrap mt-2">
@@ -119,11 +119,18 @@ export default function QuestionsOutputPage() {
                                             </div>
                                         </div>
                                     </button>
+                                    
+                                    {/* --- PERBAIKAN DI SINI --- */}
+                                    {/* Hapus tag <a> dan passHref, pindahkan className ke Link */}
+                                    {/* <Link href={`/cetak/${paket.id}`} className="btn btn-sm btn-outline-secondary ms-2" title="Cetak Paket Soal">
+                                        <BsPrinter />
+                                    </Link> */}
+                                    
                                     <button className="btn btn-sm btn-outline-danger ms-2 me-3" onClick={() => handleOpenDeleteModal(paket)} title="Hapus Paket Soal">
                                         <BsTrash />
                                     </button>
                                 </h2>
-                                <div id={`collapse-${paket.id}`} className={`accordion-collapse collapse ${index === 0 ? 'show' : ''}`} aria-labelledby={`heading-${paket.id}`} data-bs-parent="#riwayatAccordion">
+                                <div id={`collapse-${paket.id}`} className={`accordion-collapse collapse ${index === 0 ? 'show' : ''}`} data-bs-parent="#riwayatAccordion">
                                     <div className="accordion-body p-0"><PaketSoalCard paket={paket} /></div>
                                 </div>
                             </div>
