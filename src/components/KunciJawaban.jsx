@@ -1,5 +1,5 @@
 // LOKASI: src/components/KunciJawaban.jsx
-// VERSI BARU: Dengan header yang konsisten dan format yang lebih rapi.
+// VERSI FINAL: Sekarang menampilkan soal di atas setiap jawaban.
 
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -33,7 +33,7 @@ const KunciJawaban = ({ paket, schoolName, examTitle, academicYear, logo, showNi
     return (
         <div style={{ fontFamily: 'Times New Roman, serif', fontSize: '12pt', padding: '1.5cm' }}>
             
-            {/* --- HEADER BARU YANG KONSISTEN DENGAN LEMBAR SOAL --- */}
+            {/* Header tidak berubah */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.5cm', borderBottom: '3px double black', paddingBottom: '10px' }}>
                 <div style={{ flex: 1, textAlign: 'left' }}>
                     {logo && <img src={logo} alt="logo" style={{ maxHeight: '70px' }} />}
@@ -52,23 +52,39 @@ const KunciJawaban = ({ paket, schoolName, examTitle, academicYear, logo, showNi
                     )} */}
                 </div>
             </div>
-            {/* <hr style={{ borderTop: '1px solid black', margin: '0.5cm 0 1cm 0' }} /> */}
-            <h3 style={{ fontSize: '12pt', fontWeight: 'bold', marginBottom: '0.5cm' }}>Berikut adalah kunci jawaban & pembahasan!</h3>
+            
+            <h3 style={{ fontSize: '12pt', fontWeight: 'bold', margin: '1cm 0' }}>Berikut adalah kunci jawaban & pembahasan!</h3>
+            
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1cm' }}>
                 {paket.questions.map((q, index) => (
                     <div key={q.id}>
-                        <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.4cm' }}>
+                        {/* --- BAGIAN BARU: MENAMPILKAN SOAL --- */}
+                        <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.5cm' }}>
                             <div style={{ marginRight: '0.5cm', fontWeight: 'bold' }}>{index + 1}.</div>
-                            <div style={{ flex: 1, fontWeight: 'bold' }}>
-                                 <span style={{ fontWeight: 'bold', marginRight: '5px' }}>Jawaban:</span>
-                                 <span>{getCorrectAnswerText(q)}</span>
+                            <div style={{ flex: 1 }}>
+                                <MarkdownWithoutMargin>{q.questionText}</MarkdownWithoutMargin>
+                                {q.optionA && (
+                                    <ol type="A" style={{ paddingLeft: '20px', margin: '0.5cm 0 0 0', listStylePosition: 'inside', listStyleType: 'upper-alpha' }}>
+                                        <li>{q.optionA}</li>
+                                        <li>{q.optionB}</li>
+                                        <li>{q.optionC}</li>
+                                        <li>{q.optionD}</li>
+                                    </ol>
+                                )}
                             </div>
                         </div>
 
-                        <div style={{ marginLeft: 'calc(0.5cm + 1em)', fontSize: '11pt', borderLeft: '2px solid #eee', paddingLeft: '15px' }}>
-                            <span style={{ fontWeight: 'bold', marginRight: '5px' }}>Pembahasan:</span>
-                            <div style={{ display: 'inline-block', flex: 1 }}>
-                                <MarkdownWithoutMargin>{q.solution || "Tidak ada pembahasan."}</MarkdownWithoutMargin>
+                        {/* --- Jawaban dan Pembahasan (sedikit modifikasi gaya) --- */}
+                        <div style={{ marginLeft: 'calc(0.5cm + 1em)', fontSize: '11pt', backgroundColor: '#f7f7f7', borderLeft: '3px solid #ccc', padding: '10px' }}>
+                            <div style={{ marginBottom: '0.25cm', display: 'flex' }}>
+                                <span style={{ fontWeight: 'bold', marginRight: '5px', flexShrink: 0 }}>Jawaban:</span>
+                                <span>{getCorrectAnswerText(q)}</span>
+                            </div>
+                             <div>
+                                <span style={{ fontWeight: 'bold', marginRight: '5px', flexShrink: 0 }}>Pembahasan:</span>
+                                <div style={{ display: 'inline-block', flex: 1 }}>
+                                    <MarkdownWithoutMargin>{q.solution || "Tidak ada pembahasan."}</MarkdownWithoutMargin>
+                                </div>
                             </div>
                         </div>
                     </div>

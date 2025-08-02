@@ -22,6 +22,8 @@ export default function GenerateQuestionPage() {
     const [questionType, setQuestionType] = useState('multiple_choice');
     const [numQuestions, setNumQuestions] = useState(5);
     const [difficulty, setDifficulty] = useState('sd'); // <-- STATE BARU UNTUK JENJANG
+    const [numMultipleChoice, setNumMultipleChoice] = useState(3); // Default untuk PG
+    const [numEssay, setNumEssay] = useState(2); // Default untuk Esai
 
     // --- State untuk Proses & Hasil ---
     const [loading, setLoading] = useState(false);
@@ -51,7 +53,7 @@ export default function GenerateQuestionPage() {
     }
 
     // --- KUMPULAN FUNGSI LENGKAP ANDA ---
-
+    // --- PERUBAHAN 2: Sesuaikan Logika Pengiriman Data ---
     const handleGenerateDraft = async () => {
         setLoading(true);
         setError("");
@@ -59,11 +61,19 @@ export default function GenerateQuestionPage() {
         setIsDraftMode(false);
 
         const requestBody = {
-            numberOfQuestions: numQuestions,
             questionType: questionType,
-            difficulty: difficulty, // <-- Menambahkan data jenjang ke request
+            difficulty: difficulty,
             ...(mode === 'single' ? { topic } : { topics })
         };
+
+        if (questionType === 'mixed') {
+            // Jika mode campuran, kirim jumlah spesifik PG dan Esai
+            requestBody.numMultipleChoice = numMultipleChoice;
+            requestBody.numEssay = numEssay;
+        } else {
+            // Jika tidak, kirim jumlah total seperti biasa
+            requestBody.numberOfQuestions = numQuestions;
+        }
 
         try {
             const res = await fetch("/api/generate-only", {
@@ -94,15 +104,21 @@ export default function GenerateQuestionPage() {
         });
     };
 
+    // --- FUNGSI YANG DIPERBAIKI ---
     const handleReplaceQuestion = async (indexToReplace) => {
-        setIsReplacing(true);
+        setIsReplacing(indexToReplace); // Tandai soal yang sedang diganti
         setError("");
         
+        // Tentukan tipe soal yang akan diganti (PG atau Esai)
+        const questionToReplace = paketSoal.questions[indexToReplace];
+        // Soal dianggap PG jika punya optionA, jika tidak maka dianggap Esai.
+        const typeToGenerate = questionToReplace.optionA ? 'multiple_choice' : 'essay';
+
         const requestBody = {
-            numberOfQuestions: 1,
-            questionType: questionType,
-            difficulty: difficulty, // <-- Menambahkan data jenjang juga di sini
-            ...(mode === 'single' ? { topic } : { topics })
+            difficulty: difficulty,
+            ...(mode === 'single' ? { topic } : { topics }),
+            questionType: typeToGenerate, // Kirim tipe soal yang benar
+            numberOfQuestions: 1, // Kita hanya butuh satu soal pengganti
         };
 
         try {
@@ -199,23 +215,43 @@ export default function GenerateQuestionPage() {
                                     <select className="form-select form-select-lg" value={difficulty} onChange={(e) => setDifficulty(e.target.value)} disabled={loading}>
                                         <option value="sd">Jenjang: SD (Sederhana)</option>
                                         <option value="smp">Jenjang: SMP (Menengah)</option>
-                                        <option value="sma">Jenjang: SMA/SMK (Lanjutan)</option>
+                                        {/* <option value="sma">Jenjang: SMA/SMK (Lanjutan)</option> */}
                                     </select>
                                 </div>
                                 <div className="col-md">
                                     <select className="form-select form-select-lg" value={questionType} onChange={(e) => setQuestionType(e.target.value)} disabled={loading}>
                                         <option value="multiple_choice">Tipe: Pilihan Ganda</option>
                                         <option value="essay">Tipe: Esai</option>
+                                        {/* TAMBAHKAN BARIS DI BAWAH INI */}
+                                        <option value="mixed">Tipe: Campuran (PG & Esai)</option>
                                     </select>
                                 </div>
-                                <div className="col-md">
-                                    <select className="form-select form-select-lg" value={numQuestions} onChange={(e) => setNumQuestions(Number(e.target.value))} disabled={loading}>
-                                        <option value="1">1 Soal</option>
-                                        <option value="3">3 Soal</option>
-                                        <option value="5">5 Soal</option>
-                                        <option value="10">10 Soal</option>
-                                    </select>
-                                </div>
+                                {/* --- BAGIAN YANG DIPERBARUI 3: Tampilan Input Jumlah Soal --- */}
+                                {questionType === 'mixed' ? (
+                                    <>
+                                        <div className="col-md">
+                                            <div className="input-group">
+                                                <span className="input-group-text">PG</span>
+                                                <input type="number" className="form-control form-control-lg" value={numMultipleChoice} onChange={(e) => setNumMultipleChoice(Number(e.target.value))} min="0" />
+                                            </div>
+                                        </div>
+                                        <div className="col-md">
+                                            <div className="input-group">
+                                                <span className="input-group-text">Esai</span>
+                                                <input type="number" className="form-control form-control-lg" value={numEssay} onChange={(e) => setNumEssay(Number(e.target.value))} min="0" />
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="col-md">
+                                        <select className="form-select form-select-lg" value={numQuestions} onChange={(e) => setNumQuestions(Number(e.target.value))} disabled={loading}>
+                                            <option value="1">1 Soal</option>
+                                            <option value="3">3 Soal</option>
+                                            <option value="5">5 Soal</option>
+                                            <option value="10">10 Soal</option>
+                                        </select>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="d-grid">
