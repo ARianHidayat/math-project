@@ -1,5 +1,5 @@
-// LOKASI: src/pages/petunjuk/index.jsx (atau yang sesuai)
-// VERSI BARU: Halaman petunjuk dengan format FAQ menggunakan Accordion.
+// LOKASI: src/pages/petunjuk/index.jsx
+// VERSI FINAL: FAQ telah diperbarui dengan contoh pengisian dan penjelasan yang lebih detail.
 
 import React, { useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -7,41 +7,46 @@ import Navbar from '../../components/navbar';
 import Footer from '../../components/footer';
 import ScrollToTopButton from '../../components/ScrollToTopButton';
 
-// Data untuk FAQ. Sangat mudah untuk menambah, mengubah, atau menghapus pertanyaan.
+// Data FAQ yang sudah diperbarui dengan contoh konkret
 const faqData = [
   {
     id: 'faq1',
     question: 'Bagaimana cara mulai menggunakan SOLMATE?',
-    answer: 'Sangat mudah! Anda hanya perlu mendaftar atau login. Karena kami menggunakan sistem login tanpa password (magic link), Anda cukup memasukkan alamat email Anda. Kami akan mengirimkan sebuah link ke email tersebut. Klik link itu, dan Anda akan otomatis masuk ke dalam sistem.'
+    answer: 'Sangat mudah! Cukup daftar atau login menggunakan email Anda. Kami menggunakan sistem "magic link" tanpa password. Masukkan email Anda, klik link yang kami kirim, dan Anda akan langsung masuk.'
   },
   {
     id: 'faq2',
-    question: 'Apakah saya perlu login setiap saat?',
-    answer: 'Tidak perlu. Selama Anda tidak menekan tombol "Logout", sesi login Anda akan tetap aktif di browser yang sama. Anda bisa menutup tab atau browser, dan saat membukanya kembali, Anda akan tetap dalam keadaan login.'
+    question: 'Bagaimana cara membuat soal yang spesifik sesuai tujuan pembelajaran?',
+    answer: `Anda bisa menggunakan kombinasi "Kategori" dan "Konteks RPP". Di bagian pengaturan, kami menyediakan kategori berdasarkan kerangka pedagogis seperti Taksonomi Bloom. Contohnya, untuk membuat soal analisis:\n\n1.  **Masukkan Topik Soal**: "Statistika Dasar (Mean, Median, Modus)"\n2.  **Pilih Kategori**: "C4: Menganalisis (Analyzing)"\n3.  **Isi Konteks RPP**: "Siswa mampu menganalisis set data untuk menentukan ukuran pemusatan mana (mean, median, atau modus) yang paling tepat untuk merepresentasikan data, serta memberikan alasan."\n\nDengan input ini, AI tidak akan sekadar bertanya "Berapa mean dari data ini?", melainkan akan membuat soal kontekstual yang benar-benar menguji kemampuan analisis siswa.`
   },
   {
     id: 'faq3',
-    question: 'Fitur apa saja yang bisa saya gunakan setelah login?',
-    answer: 'Setelah login, semua fitur utama akan terbuka untuk Anda! Anda bisa mulai **membuat paket soal** di halaman "Buat Soal", melihat semua paket yang pernah Anda simpan di halaman **"Riwayat"**, dan yang terpenting, **mengerjakan latihan soal** dari paket yang sudah Anda buat.'
+    question: 'Apa fungsi dari kolom "Konteks dari RPP"?',
+    answer: 'Kolom ini adalah "pembisik" Anda untuk AI. Gunakan untuk memberikan arahan spesifik dari tujuan pembelajaran Anda. Tanpa konteks, AI mungkin hanya membuat soal definisi biasa. Dengan konteks, Anda bisa mengarahkan AI untuk membuat soal yang lebih mendalam. Contohnya, jika Anda mencentang "Sertakan Konteks dari RPP", Anda bisa memasukkan instruksi seperti "Buat soal cerita tentang diskon di pasar swalayan" untuk mendapatkan hasil yang lebih relevan.'
   },
   {
     id: 'faq4',
-    question: 'Bagaimana cara membuat soal yang sesuai untuk siswa saya (misal: SD)?',
-    answer: 'Kami mengerti kebutuhan Anda. Di halaman "Buat Soal", kami telah menyediakan opsi **"Jenjang Pendidikan"**. Cukup pilih jenjang yang sesuai (SD, SMP, atau SMA), dan AI kami akan secara otomatis menyesuaikan tingkat kesulitan soal agar cocok dengan kurikulum dan kemampuan siswa pada jenjang tersebut.'
+    question: 'Bisakah saya membuat soal Pilihan Ganda dan Esai sekaligus?',
+    answer: 'Tentu saja. Di pengaturan "Tipe Soal", pilih opsi "Campuran (PG & Esai)". Setelah itu, akan muncul dua kotak input baru yang memungkinkan Anda untuk menentukan jumlah Pilihan Ganda dan jumlah Esai secara spesifik. Misalnya, Anda bisa meminta 3 soal Pilihan Ganda dan 2 soal Esai dalam satu kali pembuatan.'
   },
   {
     id: 'faq5',
-    question: 'Saya tidak suka dengan salah satu soal yang dihasilkan. Apa yang harus saya lakukan?',
-    answer: 'Tenang saja! Inilah keunggulan fitur "Editor Interaktif" kami. Setelah soal dibuat sebagai draf, Anda akan melihat tombol hapus dan ganti di setiap soal. Anda bisa menghapus soal yang tidak Anda suka, atau menggantinya dengan soal baru tanpa harus mengulang seluruh proses.'
+    question: 'Soal yang dihasilkan kurang cocok. Apa yang bisa saya lakukan?',
+    answer: 'Gunakan fitur "Editor Interaktif" kami. Setelah soal dibuat sebagai draf, setiap soal akan memiliki tombol hapus (ikon tong sampah). Klik tombol tersebut, lalu akan muncul tombol "Buat Soal Pengganti". Fitur ini akan membuat satu soal baru dengan tipe yang sama (PG atau Esai) tanpa harus mengulang seluruh proses.'
   },
   {
     id: 'faq6',
-    question: 'Apakah hasil kerja saya bisa diekspor?',
-    answer: 'Tentu saja. Di halaman "Riwayat", setiap paket soal memiliki tombol "Cetak / Ekspor PDF" dan "Ekspor ke Word". Ini memungkinkan Anda untuk dengan mudah mencetak lembar soal untuk ujian atau membagikannya dalam format digital.'
+    question: 'Bagaimana cara mencetak soal atau kunci jawaban?',
+    answer: 'Di halaman "Riwayat", klik ikon printer pada paket soal yang Anda inginkan. Anda akan dibawa ke halaman pratinjau. Di sana, Anda bisa mengatur kop surat (nama ujian, logo sekolah, dll.) dan memilih konten yang ingin dicetak dari dropdown: "Lembar Soal Saja", "Kunci Jawaban Saja", atau "Keduanya".'
+  },
+  {
+    id: 'faq7',
+    question: 'Bagaimana cara mengekspor soal ke PDF?',
+    answer: 'Sangat mudah. Fitur "Cetak" kami sudah menjadi satu dengan "Ekspor PDF". Di halaman pratinjau, setelah semua pengaturan selesai, klik tombol "Cetak / Simpan sebagai PDF". Pada dialog cetak yang muncul, ubah pilihan "Destination" (Tujuan) dari nama printer Anda menjadi "Save as PDF", lalu klik "Save".'
   }
 ];
 
-// Komponen untuk satu item Accordion
+// Komponen FaqItem tidak berubah
 const FaqItem = ({ item, index }) => (
     <div className="accordion-item">
         <h2 className="accordion-header" id={`heading-${item.id}`}>
@@ -63,7 +68,8 @@ const FaqItem = ({ item, index }) => (
             data-bs-parent="#faqAccordion"
         >
             <div className="accordion-body" style={{ lineHeight: '1.7' }}>
-                {item.answer}
+                {/* Menggunakan <pre> untuk menjaga format teks dengan baris baru */}
+                <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: 'inherit' }}>{item.answer}</pre>
             </div>
         </div>
     </div>
@@ -72,7 +78,6 @@ const FaqItem = ({ item, index }) => (
 
 export default function HowToPage() {
     useEffect(() => {
-        // Impor JS Bootstrap hanya di sisi klien
         import('bootstrap/dist/js/bootstrap.bundle.min.js');
     }, []);
 

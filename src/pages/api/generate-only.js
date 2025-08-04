@@ -12,14 +12,37 @@ const model = genAI.getGenerativeModel({
 });
 
 // Fungsi ini tidak perlu diubah sama sekali
+// Ganti fungsi getDifficultyContext yang lama dengan yang ini:
 const getDifficultyContext = (difficulty) => {
     switch (difficulty) {
+        // Jenjang Pendidikan (Tetap Sama)
         case 'sd':
-            return 'Soal harus sangat sederhana, cocok untuk anak Sekolah Dasar. Gunakan operasi dasar seperti penjumlahan, pengurangan, dan perkalian satu atau dua digit. Hindari angka negatif, pecahan, atau soal cerita yang rumit.';
+            return 'Soal harus sangat sederhana, cocok untuk anak Sekolah Dasar. Gunakan operasi dasar seperti penjumlahan, pengurangan, dan perkalian satu atau dua digit.';
         case 'smp':
-            return 'Soal harus memiliki tingkat kesulitan menengah, cocok untuk siswa SMP. Boleh menyertakan aljabar dasar, geometri sederhana, angka negatif, dan pecahan. Soal cerita diperbolehkan.';
-        case 'sma':
-            return 'Soal harus tingkat lanjut, cocok untuk siswa SMA/SMK. Boleh mencakup topik kompleks seperti kalkulus, trigonometri, statistika, atau aljabar lanjutan. Soal harus menantang dan membutuhkan pemikiran kritis.';
+            return 'Soal harus memiliki tingkat kesulitan menengah, cocok untuk siswa SMP. Boleh menyertakan aljabar dasar, geometri sederhana, dan pecahan.';
+
+        // Taksonomi Bloom
+        case 'bloom_c1':
+            return 'Soal harus menguji kemampuan Mengingat (Taksonomi Bloom C1). Fokus pada pertanyaan yang meminta siswa untuk menyebutkan kembali fakta, istilah, atau konsep dasar.';
+        case 'bloom_c2':
+            return 'Soal harus menguji kemampuan Memahami (Taksonomi Bloom C2). Minta siswa untuk menjelaskan ide atau konsep, menginterpretasikan, atau meringkas informasi.';
+        case 'bloom_c3':
+            return 'Soal harus menguji kemampuan Menerapkan (Taksonomi Bloom C3). Minta siswa untuk menggunakan informasi atau konsep dalam situasi baru atau nyata. Gunakan soal cerita praktis.';
+        case 'bloom_c4':
+            return 'Soal harus menguji kemampuan Menganalisis (Taksonomi Bloom C4). Minta siswa untuk memecah informasi menjadi bagian-bagian, mengidentifikasi pola, atau mengenali hubungan sebab-akibat. Hindari simbol matematika yang rumit.';
+        case 'bloom_c5':
+            return 'Soal harus menguji kemampuan Mengevaluasi (Taksonomi Bloom C5). Minta siswa untuk memberikan penilaian, argumen, atau keputusan berdasarkan kriteria dan standar. Buat sebuah skenario untuk dinilai.';
+        case 'bloom_c6':
+            return 'Soal harus menguji kemampuan Mencipta (Taksonomi Bloom C6). Minta siswa untuk menghasilkan ide baru atau produk orisinal, misalnya dengan meminta mereka merancang sebuah masalah matematika sederhana berdasarkan data yang diberikan.';
+
+        // Kerangka Lain
+        case 'gagne_recall':
+            return "Menurut Gagne's Nine Events, soal ini harus bertujuan untuk menstimulasi ingatan akan pembelajaran sebelumnya (event 3). Buat pertanyaan yang menghubungkan topik saat ini dengan konsep dasar yang seharusnya sudah dikuasai siswa.";
+        case 'gagne_elicit':
+            return "Menurut Gagne's Nine Events, soal ini harus bertujuan untuk mendorong kinerja siswa (event 7). Buat pertanyaan praktik langsung yang memungkinkan siswa menerapkan apa yang baru saja mereka pelajari dari topik yang diberikan.";
+        case 'vak_visual':
+            return "Buat soal yang cocok untuk gaya belajar Visual. **Deskripsikan sebuah skenario, pola, atau bentuk geometris sederhana HANYA DENGAN TEKS**. Siswa harus bisa memvisualisasikan masalah dari deskripsi teks untuk menyelesaikannya. **Jangan membuat gambar atau diagram.**";
+        
         default:
             return '';
     }
@@ -37,7 +60,7 @@ export default async function handler(req, res) {
         }
 
         // --- BAGIAN YANG DIPERBARUI 1: Ambil parameter baru dari body ---
-        const { topic, topics, questionType, difficulty, numberOfQuestions, numMultipleChoice, numEssay } = req.body;
+        const { topic, topics, numberOfQuestions, questionType, difficulty, numMultipleChoice, numEssay, rppContext } = req.body;
 
         if (!topic && (!Array.isArray(topics) || topics.length === 0)) {
             return res.status(400).json({ error: "Topik tidak boleh kosong" });
@@ -73,8 +96,15 @@ export default async function handler(req, res) {
                 formatInstruction = `Jenis soal harus Esai. Format respons dalam array JSON yang valid dengan properti "questionText", "correctAnswer", dan "solution".`;
             }
         }
-
-        const prompt = `${mainInstruction}\n${formatInstruction}\nPENTING: ${contextualInstruction}`;
+        // --- TAMBAHKAN BLOK KODE DI BAWAH INI ---
+        let rppInstruction = '';
+        if (rppContext && rppContext.trim() !== '') {
+            rppInstruction = `Soal yang dibuat HARUS sesuai dan relevan dengan konteks Rencana Pelaksanaan Pembelajaran (RPP) berikut: "${rppContext}"`;
+        }
+        
+        // --- UBAH BARIS DI BAWAH INI ---
+        // Gabungkan semua instruksi, termasuk RPP
+        const prompt = `${mainInstruction}\n${formatInstruction}\n${rppInstruction}\nPENTING: ${contextualInstruction}`;
         
         console.log("Mengirim prompt ke AI:", prompt);
         const result = await model.generateContent(prompt);

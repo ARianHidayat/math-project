@@ -25,6 +25,10 @@ export default function GenerateQuestionPage() {
     const [numMultipleChoice, setNumMultipleChoice] = useState(3); // Default untuk PG
     const [numEssay, setNumEssay] = useState(2); // Default untuk Esai
 
+    // --- TAMBAHKAN STATE DI BAWAH INI ---
+    const [rppContext, setRppContext] = useState("");
+    const [showRpp, setShowRpp] = useState(false);
+
     // --- State untuk Proses & Hasil ---
     const [loading, setLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -63,6 +67,7 @@ export default function GenerateQuestionPage() {
         const requestBody = {
             questionType: questionType,
             difficulty: difficulty,
+            rppContext: rppContext, // <-- TAMBAHKAN BARIS INI
             ...(mode === 'single' ? { topic } : { topics })
         };
 
@@ -116,6 +121,7 @@ export default function GenerateQuestionPage() {
 
         const requestBody = {
             difficulty: difficulty,
+            rppContext: rppContext, // <-- TAMBAHKAN BARIS INI JUGA
             ...(mode === 'single' ? { topic } : { topics }),
             questionType: typeToGenerate, // Kirim tipe soal yang benar
             numberOfQuestions: 1, // Kita hanya butuh satu soal pengganti
@@ -209,13 +215,30 @@ export default function GenerateQuestionPage() {
                                 )}
                             </div>
 
+                            {/* --- TAMBAHKAN BLOK KODE DI BAWAH INI --- */}
+
+
                             <label className="form-label fw-bold">2. Tentukan Pengaturan</label>
                             <div className='row g-2 mb-4'>
                                 <div className="col-md">
                                     <select className="form-select form-select-lg" value={difficulty} onChange={(e) => setDifficulty(e.target.value)} disabled={loading}>
-                                        <option value="sd">Jenjang: SD (Sederhana)</option>
-                                        <option value="smp">Jenjang: SMP (Menengah)</option>
-                                        {/* <option value="sma">Jenjang: SMA/SMK (Lanjutan)</option> */}
+                                        <optgroup label="Jenjang Pendidikan">
+                                            <option value="sd">SD (Dasar)</option>
+                                            <option value="smp">SMP (Menengah)</option>
+                                        </optgroup>
+                                        <optgroup label="Taksonomi Bloom (Kognitif)">
+                                            <option value="bloom_c1">C1: Mengingat (Remembering)</option>
+                                            <option value="bloom_c2">C2: Memahami (Understanding)</option>
+                                            <option value="bloom_c3">C3: Menerapkan (Applying)</option>
+                                            <option value="bloom_c4">C4: Menganalisis (Analyzing)</option>
+                                            <option value="bloom_c5">C5: Mengevaluasi (Evaluating)</option>
+                                            <option value="bloom_c6">C6: Mencipta (Creating)</option>
+                                        </optgroup>
+                                        <optgroup label="Kerangka Pembelajaran Lain">
+                                            <option value="gagne_recall">Gagne: Mengingat Prasyarat</option>
+                                            <option value="gagne_elicit">Gagne: Mendorong Kinerja</option>
+                                            <option value="vak_visual">VAK: Tipe Visual (Berbasis Deskripsi)</option>
+                                        </optgroup>
                                     </select>
                                 </div>
                                 <div className="col-md">
@@ -251,6 +274,32 @@ export default function GenerateQuestionPage() {
                                             <option value="10">10 Soal</option>
                                         </select>
                                     </div>
+                                )}
+                            </div>
+
+                            <div className="mb-4">
+                                <div className="form-check mb-2">
+                                    <input 
+                                        className="form-check-input" 
+                                        type="checkbox" 
+                                        id="showRppCheck" 
+                                        checked={showRpp} 
+                                        onChange={(e) => setShowRpp(e.target.checked)} 
+                                    />
+                                    <label className="form-check-label fw-bold" htmlFor="showRppCheck">
+                                        Sertakan Konteks dari RPP (Opsional)
+                                    </label>
+                                </div>
+                                
+                                {showRpp && (
+                                    <textarea 
+                                        id="rppContext"
+                                        className="form-control" 
+                                        rows="4" 
+                                        placeholder="Salin dan tempel bagian dari RPP Anda di sini, contoh: 'Siswa mampu menyelesaikan soal perkalian dua digit...' agar soal yang dihasilkan lebih relevan."
+                                        value={rppContext}
+                                        onChange={(e) => setRppContext(e.target.value)}
+                                    ></textarea>
                                 )}
                             </div>
 
