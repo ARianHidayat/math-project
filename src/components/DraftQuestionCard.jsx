@@ -44,7 +44,7 @@ const SmartQuestionDisplay = ({ question }) => {
 };
 
 // Komponen utama untuk kartu draft
-const DraftQuestionCard = ({ question, index, onDelete, onReplace, isReplacing }) => {
+const DraftQuestionCard = ({ question, index, onDelete, onReplace, isReplacing, onToggleHot, isHot }) => {
 
     // Jika soal ditandai sebagai "dihapus", tampilkan tombol untuk generate pengganti
     if (question.isDeleted) {
@@ -63,17 +63,28 @@ const DraftQuestionCard = ({ question, index, onDelete, onReplace, isReplacing }
     
     // Tampilan normal untuk soal
     return (
-        <div className="card shadow-sm mb-3">
+        // Tambahkan class border-warning jika soalnya HOT
+        <div className={`card shadow-sm mb-3 ${isHot ? 'border-warning border-2' : ''}`}>
             <div className="card-body">
                 <div className="d-flex justify-content-between align-items-start">
                     <p className="fw-bold mb-2">📝 Soal #{index + 1}:</p>
-                    <button 
-                        className="btn btn-sm btn-outline-danger" 
-                        onClick={() => onDelete(question.tempId)}
-                        title="Hapus soal ini"
-                    >
-                        🗑️
-                    </button>
+                    <div className="d-flex gap-2">
+                        {/* --- TOMBOL BARU UNTUK SOAL HOT --- */}
+                        <button 
+                            className={`btn btn-sm ${isHot ? 'btn-warning text-dark' : 'btn-outline-secondary'}`}
+                            onClick={() => onToggleHot(question.tempId)}
+                            title="Tandai sebagai soal HOT (skor lebih tinggi)"
+                        >
+                            🔥
+                        </button>
+                        <button 
+                            className="btn btn-sm btn-outline-danger" 
+                            onClick={() => onDelete(question.tempId)}
+                            title="Hapus soal ini"
+                        >
+                            🗑️
+                        </button>
+                    </div>
                 </div>
                 <SmartQuestionDisplay question={question} />
             </div>

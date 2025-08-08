@@ -50,9 +50,9 @@ export default function Navbar() {
                                 Petunjuk
                             </button>
                         </li>
-                        <li className="nav-item">
+                        {/* <li className="nav-item">
                             <a className="nav-link disabled" aria-disabled="true">Disabled</a>
-                        </li>
+                        </li> */}
                     </ul>
 
                                  {/* === BAGIAN TAMPILAN DESKTOP (di luar menu) === */}

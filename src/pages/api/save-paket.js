@@ -30,8 +30,11 @@ export default async function handler(req, res) {
                 optionB: q.optionB,
                 optionC: q.optionC,
                 optionD: q.optionD,
+                // --- PERBAIKAN DI SINI ---
+                // Jika q.correctAnswer tidak ada (misalnya pada soal esai),
+                // berikan nilai default "N/A".
                 correctAnswer: q.correctAnswer || "N/A",
-                solution: q.solution,
+                solution: q.isHot ? `[HOT] ${q.solution}` : q.solution,
                 paketSoalId: newPaketSoal.id,
             }));
             await tx.question.createMany({ data: questionsToSave });

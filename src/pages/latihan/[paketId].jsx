@@ -69,6 +69,9 @@ export default function LatihanPage({ paket }) {
     
     const { questions } = paket;
     const currentQuestion = questions[currentIndex];
+
+    // --- PENGECEKAN APAKAH SOAL INI HOT ---
+    const isHotQuestion = currentQuestion.solution?.startsWith('[HOT]');
     
     const handleNext = () => {
         if (currentIndex < questions.length - 1) {
@@ -143,15 +146,23 @@ export default function LatihanPage({ paket }) {
                 </div>
 
                 <div className="card shadow-sm">
-                     <div className="card-header bg-light">
+                    <div className="card-header bg-light">
                         <div className="d-flex justify-content-between align-items-center">
                             <div><h1 className="h5 mb-0 fw-bold">Latihan: {paket.topic}</h1></div>
-                            <div className="badge bg-primary rounded-pill fs-6">Soal {currentIndex + 1} dari {questions.length}</div>
+                            <div className="d-flex align-items-center">
+                                {/* --- PENANDA SOAL HOT DITAMBAHKAN DI SINI --- */}
+                                {isHotQuestion && (
+                                    <span className="badge bg-warning text-dark me-2">🔥 Soal HOT</span>
+                                )}
+                                <div className="badge bg-primary rounded-pill fs-6">
+                                    Soal {currentIndex + 1} dari {questions.length}
+                                </div>
+                            </div>                        
                         </div>
                     </div>
                     <div className="card-body p-4">
                         <div className="mb-4" style={{ fontSize: '1.1rem' }}>
-                           <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{currentQuestion.questionText}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{currentQuestion.questionText}</ReactMarkdown>
                         </div>
                         <div className="answer-section">
                             {currentQuestion.optionA ? (

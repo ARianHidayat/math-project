@@ -1,12 +1,11 @@
 // LOKASI: src/pages/question-page/index.jsx
-// VERSI FINAL: Menggabungkan semua logika Anda dengan penambahan fitur Jenjang dan tampilan yang diperbarui.
+// VERSI BARU: Dengan tambahan teks petunjuk di atas daftar draf.
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState, useEffect } from "react";
 import { useSession, signIn } from "next-auth/react";
 import { v4 as uuidv4 } from 'uuid';
 
-// Impor semua komponen Anda
 import Navbar from '@/components/navbar';
 import PaketSoalCard from '@/components/PaketSoalCard';
 import TagInput from '@/components/TagInput';
@@ -14,22 +13,17 @@ import DraftQuestionCard from '@/components/DraftQuestionCard';
 
 export default function GenerateQuestionPage() {
     const { data: session, status } = useSession();
-
-    // --- State untuk Form Input ---
     const [mode, setMode] = useState('single');
     const [topic, setTopic] = useState("");
     const [topics, setTopics] = useState([]);
     const [questionType, setQuestionType] = useState('multiple_choice');
+    const [difficulty, setDifficulty] = useState('sd');
     const [numQuestions, setNumQuestions] = useState(5);
-    const [difficulty, setDifficulty] = useState('sd'); // <-- STATE BARU UNTUK JENJANG
-    const [numMultipleChoice, setNumMultipleChoice] = useState(3); // Default untuk PG
-    const [numEssay, setNumEssay] = useState(2); // Default untuk Esai
-
-    // --- TAMBAHKAN STATE DI BAWAH INI ---
+    const [numMultipleChoice, setNumMultipleChoice] = useState(3);
+    const [numEssay, setNumEssay] = useState(2);
     const [rppContext, setRppContext] = useState("");
-    const [showRpp, setShowRpp] = useState(false);
-
-    // --- State untuk Proses & Hasil ---
+    const [showRpp, setShowRpp] = useState(false);
+    const [hotQuestions, setHotQuestions] = useState(new Set());
     const [loading, setLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isReplacing, setIsReplacing] = useState(false);
@@ -56,30 +50,21 @@ export default function GenerateQuestionPage() {
         return null;
     }
 
-    // --- KUMPULAN FUNGSI LENGKAP ANDA ---
-    // --- PERUBAHAN 2: Sesuaikan Logika Pengiriman Data ---
     const handleGenerateDraft = async () => {
         setLoading(true);
         setError("");
         setPaketSoal(null);
         setIsDraftMode(false);
-
         const requestBody = {
-            questionType: questionType,
-            difficulty: difficulty,
-            rppContext: rppContext, // <-- TAMBAHKAN BARIS INI
+            questionType, difficulty, rppContext,
             ...(mode === 'single' ? { topic } : { topics })
         };
-
         if (questionType === 'mixed') {
-            // Jika mode campuran, kirim jumlah spesifik PG dan Esai
             requestBody.numMultipleChoice = numMultipleChoice;
             requestBody.numEssay = numEssay;
         } else {
-            // Jika tidak, kirim jumlah total seperti biasa
             requestBody.numberOfQuestions = numQuestions;
         }
-
         try {
             const res = await fetch("/api/generate-only", {
                 method: "POST",
@@ -88,7 +73,6 @@ export default function GenerateQuestionPage() {
                 credentials: 'include',
             });
             if (!res.ok) throw new Error((await res.json()).error || "Gagal generate soal");
-
             const data = await res.json();
             const questionsWithId = data.map(q => ({ ...q, tempId: uuidv4(), isDeleted: false }));
             setPaketSoal({ questions: questionsWithId });
@@ -109,24 +93,17 @@ export default function GenerateQuestionPage() {
         });
     };
 
-    // --- FUNGSI YANG DIPERBAIKI ---
     const handleReplaceQuestion = async (indexToReplace) => {
-        setIsReplacing(indexToReplace); // Tandai soal yang sedang diganti
+        setIsReplacing(indexToReplace);
         setError("");
-        
-        // Tentukan tipe soal yang akan diganti (PG atau Esai)
         const questionToReplace = paketSoal.questions[indexToReplace];
-        // Soal dianggap PG jika punya optionA, jika tidak maka dianggap Esai.
         const typeToGenerate = questionToReplace.optionA ? 'multiple_choice' : 'essay';
-
         const requestBody = {
-            difficulty: difficulty,
-            rppContext: rppContext, // <-- TAMBAHKAN BARIS INI JUGA
+            difficulty, rppContext,
             ...(mode === 'single' ? { topic } : { topics }),
-            questionType: typeToGenerate, // Kirim tipe soal yang benar
-            numberOfQuestions: 1, // Kita hanya butuh satu soal pengganti
+            questionType: typeToGenerate,
+            numberOfQuestions: 1,
         };
-
         try {
             const res = await fetch("/api/generate-only", {
                 method: "POST",
@@ -135,7 +112,6 @@ export default function GenerateQuestionPage() {
                 credentials: 'include',
             });
             if (!res.ok) throw new Error((await res.json()).error || "Gagal generate soal pengganti");
-
             const [newQuestion] = await res.json();
             setPaketSoal(prevPaket => {
                 const updatedQuestions = [...prevPaket.questions];
@@ -149,19 +125,30 @@ export default function GenerateQuestionPage() {
         }
     };
 
+    const handleToggleHot = (tempId) => {
+        setHotQuestions(prevHot => {
+            const newHot = new Set(prevHot);
+            if (newHot.has(tempId)) {
+                newHot.delete(tempId);
+            } else {
+                newHot.add(tempId);
+            }
+            return newHot;
+        });
+    };
+
     const handleSavePaket = async () => {
         setIsSaving(true);
         setError("");
-
-        const finalQuestions = paketSoal.questions.filter(q => !q.isDeleted);
+        const finalQuestions = paketSoal.questions
+            .filter(q => !q.isDeleted)
+            .map(q => ({ ...q, isHot: hotQuestions.has(q.tempId) }));
         const displayTopic = mode === 'single' ? topic : topics.join(', ');
-
         if(finalQuestions.length === 0) {
             setError("Tidak ada soal untuk disimpan.");
             setIsSaving(false);
             return;
         }
-
         try {
             const res = await fetch("/api/save-paket", {
                 method: "POST",
@@ -170,10 +157,10 @@ export default function GenerateQuestionPage() {
                 credentials: 'include',
             });
             if (!res.ok) throw new Error((await res.json()).error || "Gagal menyimpan paket soal");
-
             const savedPaket = await res.json();
             setPaketSoal(savedPaket);
             setIsDraftMode(false);
+            setHotQuestions(new Set());
             alert("Paket soal berhasil disimpan!");
         } catch (err) {
             setError(err.message);
@@ -182,7 +169,6 @@ export default function GenerateQuestionPage() {
         }
     };
 
-    // --- TAMPILAN JSX YANG SUDAH DIPERBARUI & DIPERINDAH ---
     return (
         <div className='mx-auto bg-light' style={{ minHeight: '100vh' }}>
             <Navbar />
@@ -197,15 +183,10 @@ export default function GenerateQuestionPage() {
                         <div className="card-body p-4 p-md-5">
                             <div className="d-flex justify-content-center mb-4">
                                 <div className="btn-group" role="group">
-                                    <button type="button" className={`btn ${mode === 'single' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setMode('single')}>
-                                        Topik Tunggal
-                                    </button>
-                                    <button type="button" className={`btn ${mode === 'multiple' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setMode('multiple')}>
-                                        Materi Bervariasi
-                                    </button>
+                                    <button type="button" className={`btn ${mode === 'single' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setMode('single')}>Topik Tunggal</button>
+                                    <button type="button" className={`btn ${mode === 'multiple' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setMode('multiple')}>Materi Bervariasi</button>
                                 </div>
                             </div>
-                            
                             <div className="mb-4">
                                 <label className="form-label fw-bold">1. Masukkan Topik Soal</label>
                                 {mode === 'single' ? (
@@ -214,95 +195,37 @@ export default function GenerateQuestionPage() {
                                     <TagInput onTopicsChange={setTopics} />
                                 )}
                             </div>
-
-                            {/* --- TAMBAHKAN BLOK KODE DI BAWAH INI --- */}
-
-
-                            <label className="form-label fw-bold">2. Tentukan Pengaturan</label>
+                            <div className="mb-4">
+                                <div className="form-check mb-2">
+                                    <input className="form-check-input" type="checkbox" id="showRppCheck" checked={showRpp} onChange={(e) => setShowRpp(e.target.checked)} />
+                                    <label className="form-check-label fw-bold" htmlFor="showRppCheck">2. Sertakan Konteks dari RPP (Opsional)</label>
+                                </div>
+                                {showRpp && (
+                                    <textarea id="rppContext" className="form-control" rows="4" placeholder="Salin dan tempel bagian dari RPP Anda di sini..." value={rppContext} onChange={(e) => setRppContext(e.target.value)}></textarea>
+                                )}
+                            </div>
+                            <label className="form-label fw-bold">3. Tentukan Pengaturan</label>
                             <div className='row g-2 mb-4'>
                                 <div className="col-md">
                                     <select className="form-select form-select-lg" value={difficulty} onChange={(e) => setDifficulty(e.target.value)} disabled={loading}>
-                                        <optgroup label="Jenjang Pendidikan">
-                                            <option value="sd">SD (Dasar)</option>
-                                            <option value="smp">SMP (Menengah)</option>
-                                        </optgroup>
-                                        <optgroup label="Taksonomi Bloom (Kognitif)">
-                                            <option value="bloom_c1">C1: Mengingat (Remembering)</option>
-                                            <option value="bloom_c2">C2: Memahami (Understanding)</option>
-                                            <option value="bloom_c3">C3: Menerapkan (Applying)</option>
-                                            <option value="bloom_c4">C4: Menganalisis (Analyzing)</option>
-                                            <option value="bloom_c5">C5: Mengevaluasi (Evaluating)</option>
-                                            <option value="bloom_c6">C6: Mencipta (Creating)</option>
-                                        </optgroup>
-                                        <optgroup label="Kerangka Pembelajaran Lain">
-                                            <option value="gagne_recall">Gagne: Mengingat Prasyarat</option>
-                                            <option value="gagne_elicit">Gagne: Mendorong Kinerja</option>
-                                            <option value="vak_visual">VAK: Tipe Visual (Berbasis Deskripsi)</option>
-                                        </optgroup>
+                                        <optgroup label="Jenjang Pendidikan"><option value="sd">SD (Dasar)</option><option value="smp">SMP (Menengah)</option></optgroup>
+                                        <optgroup label="Taksonomi Bloom (Kognitif)"><option value="bloom_c1">C1: Mengingat</option><option value="bloom_c2">C2: Memahami</option><option value="bloom_c3">C3: Menerapkan</option><option value="bloom_c4">C4: Menganalisis</option><option value="bloom_c5">C5: Mengevaluasi</option><option value="bloom_c6">C6: Mencipta</option></optgroup>
+                                        <optgroup label="Kerangka Lain"><option value="gagne_recall">Gagne: Mengingat Prasyarat</option><option value="gagne_elicit">Gagne: Mendorong Kinerja</option><option value="vak_visual">VAK: Tipe Visual</option></optgroup>
                                     </select>
                                 </div>
                                 <div className="col-md">
                                     <select className="form-select form-select-lg" value={questionType} onChange={(e) => setQuestionType(e.target.value)} disabled={loading}>
                                         <option value="multiple_choice">Tipe: Pilihan Ganda</option>
                                         <option value="essay">Tipe: Esai</option>
-                                        {/* TAMBAHKAN BARIS DI BAWAH INI */}
                                         <option value="mixed">Tipe: Campuran (PG & Esai)</option>
                                     </select>
                                 </div>
-                                {/* --- BAGIAN YANG DIPERBARUI 3: Tampilan Input Jumlah Soal --- */}
                                 {questionType === 'mixed' ? (
-                                    <>
-                                        <div className="col-md">
-                                            <div className="input-group">
-                                                <span className="input-group-text">PG</span>
-                                                <input type="number" className="form-control form-control-lg" value={numMultipleChoice} onChange={(e) => setNumMultipleChoice(Number(e.target.value))} min="0" />
-                                            </div>
-                                        </div>
-                                        <div className="col-md">
-                                            <div className="input-group">
-                                                <span className="input-group-text">Esai</span>
-                                                <input type="number" className="form-control form-control-lg" value={numEssay} onChange={(e) => setNumEssay(Number(e.target.value))} min="0" />
-                                            </div>
-                                        </div>
-                                    </>
+                                    <><div className="col-md"><div className="input-group"><span className="input-group-text">PG</span><input type="number" className="form-control form-control-lg" value={numMultipleChoice} onChange={(e) => setNumMultipleChoice(Number(e.target.value))} min="0" /></div></div><div className="col-md"><div className="input-group"><span className="input-group-text">Esai</span><input type="number" className="form-control form-control-lg" value={numEssay} onChange={(e) => setNumEssay(Number(e.target.value))} min="0" /></div></div></>
                                 ) : (
-                                    <div className="col-md">
-                                        <select className="form-select form-select-lg" value={numQuestions} onChange={(e) => setNumQuestions(Number(e.target.value))} disabled={loading}>
-                                            <option value="1">1 Soal</option>
-                                            <option value="3">3 Soal</option>
-                                            <option value="5">5 Soal</option>
-                                            <option value="10">10 Soal</option>
-                                        </select>
-                                    </div>
+                                    <div className="col-md"><select className="form-select form-select-lg" value={numQuestions} onChange={(e) => setNumQuestions(Number(e.target.value))} disabled={loading}><option value="1">1 Soal</option><option value="3">3 Soal</option><option value="5">5 Soal</option><option value="10">10 Soal</option></select></div>
                                 )}
                             </div>
-
-                            <div className="mb-4">
-                                <div className="form-check mb-2">
-                                    <input 
-                                        className="form-check-input" 
-                                        type="checkbox" 
-                                        id="showRppCheck" 
-                                        checked={showRpp} 
-                                        onChange={(e) => setShowRpp(e.target.checked)} 
-                                    />
-                                    <label className="form-check-label fw-bold" htmlFor="showRppCheck">
-                                        Sertakan Konteks dari RPP (Opsional)
-                                    </label>
-                                </div>
-                                
-                                {showRpp && (
-                                    <textarea 
-                                        id="rppContext"
-                                        className="form-control" 
-                                        rows="4" 
-                                        placeholder="Salin dan tempel bagian dari RPP Anda di sini, contoh: 'Siswa mampu menyelesaikan soal perkalian dua digit...' agar soal yang dihasilkan lebih relevan."
-                                        value={rppContext}
-                                        onChange={(e) => setRppContext(e.target.value)}
-                                    ></textarea>
-                                )}
-                            </div>
-
                             <div className="d-grid">
                                 <button onClick={handleGenerateDraft} disabled={loading || (mode === 'single' ? !topic : topics.length === 0)} type='button' className="btn btn-success btn-lg text-white shadow-sm fw-bold">
                                     {loading ? "Memproses..." : "🚀 Buat Draft Soal"}
@@ -318,15 +241,31 @@ export default function GenerateQuestionPage() {
                 {paketSoal && (
                     <div className="mt-4">
                         <h2 className="h4 text-center mb-3">
-                            {isDraftMode ? "Draft Paket Soal (Bisa Dihapus/Diganti)" : "Paket Soal Berhasil Disimpan"}
+                            {isDraftMode ? "Draft Paket Soal" : "Paket Soal Berhasil Disimpan"}
                         </h2>
+                        {isDraftMode && (
+                            <div className="alert alert-secondary small">
+                                <strong>Petunjuk:</strong> Anda berada dalam mode draf. Di sini Anda bisa meninjau setiap soal.
+                                Gunakan tombol 🔥 untuk menandai soal sebagai Soal HOT (skor lebih tinggi) dan tombol 🗑️ untuk menghapus soal.
+                                Soal yang dihapus bisa dibuat ulang dengan menekan tombol 🔄 "Buat Soal Pengganti".
+                            </div>
+                        )}
                         {isDraftMode ? (
                             <div>
                                 {paketSoal.questions.map((q, index) => (
-                                    <DraftQuestionCard key={q.tempId} question={q} index={index} onDelete={handleDeleteQuestion} onReplace={handleReplaceQuestion} isReplacing={isReplacing && paketSoal.questions[index].isDeleted} />
+                                    <DraftQuestionCard 
+                                        key={q.tempId} 
+                                        question={q} 
+                                        index={index} 
+                                        onDelete={handleDeleteQuestion} 
+                                        onReplace={handleReplaceQuestion} 
+                                        isReplacing={isReplacing === index}
+                                        onToggleHot={handleToggleHot}
+                                        isHot={hotQuestions.has(q.tempId)}
+                                    />
                                 ))}
                                 <div className="d-flex justify-content-end mt-4 gap-2">
-                                    <button className="btn btn-outline-danger" onClick={() => { setPaketSoal(null); setIsDraftMode(false); }}>Buang Draft</button>
+                                    <button className="btn btn-outline-danger" onClick={() => { setPaketSoal(null); setIsDraftMode(false); setHotQuestions(new Set()); }}>Buang Draft</button>
                                     <button className="btn btn-primary fw-bold" onClick={handleSavePaket} disabled={isSaving}>{isSaving ? "Menyimpan..." : "✅ Simpan Paket Soal Ini"}</button>
                                 </div>
                             </div>
