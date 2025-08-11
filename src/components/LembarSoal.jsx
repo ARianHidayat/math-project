@@ -1,5 +1,5 @@
 // LOKASI: src/components/LembarSoal.jsx
-// VERSI BARU: Menampilkan Logo dan Nilai, serta menyeimbangkan header
+// VERSI BARU: Dengan pemisah antara soal PG & Esai, serta area jawaban esai.
 
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -8,7 +8,11 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 
-const LembarSoal = ({ paket, schoolName, examTitle, academicYear, examDate, logo, showNilai }) => {
+const LembarSoal = ({ paket, schoolName, examTitle, academicYear, examDate, logo, showNilai, kelas, namaGuru }) => {
+    // 1. PISAHKAN SOAL PILIHAN GANDA DAN ESAI BERDASARKAN ADANYA OPSI JAWABAN
+    const soalPilihanGanda = paket.questions.filter(q => q.optionA);
+    const soalEsai = paket.questions.filter(q => !q.optionA);
+
     const MarkdownWithoutMargin = ({ children }) => (
         <ReactMarkdown
             components={{ p: ({ node, ...props }) => <p {...props} style={{ margin: 0 }} /> }}
@@ -21,6 +25,7 @@ const LembarSoal = ({ paket, schoolName, examTitle, academicYear, examDate, logo
 
     return (
         <div style={{ fontFamily: 'Times New Roman, serif', fontSize: '12pt', padding: '1.5cm' }}>
+            {/* Bagian Header tidak berubah */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5cm', borderBottom: '3px double black', paddingBottom: '10px' }}>
                 <div style={{ flex: 1, textAlign: 'left' }}>
                     {logo && <img src={logo} alt="logo" style={{ maxHeight: '80px' }} />}
@@ -31,7 +36,6 @@ const LembarSoal = ({ paket, schoolName, examTitle, academicYear, examDate, logo
                     {academicYear && <p style={{ fontSize: '11pt', margin: '5px 0 0 0' }}>Tahun Akademik: {academicYear}</p>}
                 </div>
                 <div style={{ flex: 1, textAlign: 'right' }}>
-                    {/* --- KOTAK NILAI BARU DI SINI --- */}
                     {showNilai && (
                         <div style={{ border: '2px solid black', padding: '10px', width: '100px', display: 'inline-block', textAlign: 'center' }}>
                             <h3 style={{ margin: 0, fontSize: '10pt', fontWeight: 'bold', borderBottom: '1px solid black', paddingBottom: '5px' }}>Nilai</h3>
@@ -46,34 +50,69 @@ const LembarSoal = ({ paket, schoolName, examTitle, academicYear, examDate, logo
                         <td style={{ width: '50%' }}>Nama: .......................................</td>
                         <td style={{ width: '50%' }}>{examDate ? `Hari/Tanggal: ${examDate}` : 'Hari/Tanggal: ..............................'}</td>
                     </tr>
-                     <tr>
-                        <td style={{ width: '50%' }}>Kelas: .......................................</td>
-                        <td style={{ width: '50%' }}>Nilai: .......................................</td>
+                    <tr>
+                        <td style={{ width: '50%' }}>Kelas: {kelas || '.......................................'}</td>
+                        <td style={{ width: '50%' }}>Nama Guru: {namaGuru || '.......................................'}</td>
                     </tr>
                 </tbody>
             </table>
             <hr style={{ borderTop: '1px solid black', margin: '0 0 1cm 0' }} />
             
-            <h3 style={{ fontSize: '12pt', fontWeight: 'bold', marginBottom: '0.5cm' }}>Jawablah pertanyaan-pertanyaan di bawah ini dengan benar!</h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1cm' }}>
-                {paket.questions.map((q, index) => (
-                    <div key={q.id} style={{ display: 'flex', alignItems: 'baseline' }}>
-                        <div style={{ marginRight: '0.5cm', fontWeight: 'bold' }}>{index + 1}.</div>
-                        <div style={{ flex: 1 }}>
-                            <MarkdownWithoutMargin>{q.questionText}</MarkdownWithoutMargin>
-                            {q.optionA && (
-                                <ol type="A" style={{ paddingLeft: '20px', margin: '0.5cm 0 0 0', listStylePosition: 'inside' }}>
-                                    <li>{q.optionA}</li>
-                                    <li>{q.optionB}</li>
-                                    <li>{q.optionC}</li>
-                                    <li>{q.optionD}</li>
-                                </ol>
-                            )}
-                        </div>
+            {/* Render Soal Pilihan Ganda jika ada */}
+            {soalPilihanGanda.length > 0 && (
+                <>
+                    <h3 style={{ fontSize: '12pt', fontWeight: 'bold', marginBottom: '0.5cm' }}>I. Jawablah pertanyaan-pertanyaan di bawah ini dengan benar!</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1cm' }}>
+                        {soalPilihanGanda.map((q, index) => (
+                            <div key={q.id} style={{ display: 'flex', alignItems: 'baseline' }}>
+                                <div style={{ marginRight: '0.5cm', fontWeight: 'bold' }}>{index + 1}.</div>
+                                <div style={{ flex: 1 }}>
+                                    <MarkdownWithoutMargin>{q.questionText}</MarkdownWithoutMargin>
+                                    <ol type="A" style={{ paddingLeft: '20px', margin: '0.1cm 0 0 0', listStylePosition: 'inside' }}>
+                                        <li>{q.optionA}</li>
+                                        <li>{q.optionB}</li>
+                                        <li>{q.optionC}</li>
+                                        <li>{q.optionD}</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                ))}
-            </div>
+                </>
+            )}
+
+            {/* 2. TAMBAHKAN PEMISAH JIKA ADA KEDUA JENIS SOAL */}
+            {(soalPilihanGanda.length > 0 && soalEsai.length > 0) && (
+                <div style={{ marginTop: '1cm' }}>
+                    <h3 style={{ fontSize: '12pt', fontWeight: 'bold', marginBottom: '0.5cm' }}>II. Isilah soal di bawah ini dengan jawaban yang tepat!</h3>
+                </div>
+            )}
+            
+            {/* Render Soal Esai jika ada */}
+            {soalEsai.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1cm', marginTop: soalPilihanGanda.length === 0 ? '0' : '0.5cm' }}>
+                    {/* Jika tidak ada PG, tampilkan instruksi utama di sini */}
+                    {soalPilihanGanda.length === 0 && (
+                         <h3 style={{ fontSize: '12pt', fontWeight: 'bold', marginBottom: '0.5cm' }}>Jawablah pertanyaan-pertanyaan di bawah ini dengan benar!</h3>
+                    )}
+                    {soalEsai.map((q, index) => (
+                        <div key={q.id} style={{ display: 'flex', alignItems: 'baseline' }}>
+                            {/* Penomoran akan melanjutkan dari soal PG */}
+                            <div style={{ marginRight: '0.5cm', fontWeight: 'bold' }}>{soalPilihanGanda.length + index + 1}.</div>
+                            <div style={{ flex: 1 }}>
+                                <MarkdownWithoutMargin>{q.questionText}</MarkdownWithoutMargin>
+                                {/* 3. TAMBAHKAN AREA JAWABAN UNTUK SOAL ESAI */}
+                                <div className="answer-space" >
+                                    <br />
+                                    <hr style={{ borderTop: '2px dotted black', margin: '0.1cm 0' }} />
+                                    <hr style={{ borderTop: '2px dotted black', margin: '0.5cm 0' }} />
+                                    <hr style={{ borderTop: '2px dotted black', margin: '0.5cm 0' }} />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

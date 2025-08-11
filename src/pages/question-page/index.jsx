@@ -187,6 +187,7 @@ export default function GenerateQuestionPage() {
                                     <button type="button" className={`btn ${mode === 'multiple' ? 'btn-primary' : 'btn-outline-primary'}`} onClick={() => setMode('multiple')}>Materi Bervariasi</button>
                                 </div>
                             </div>
+                            {/* 1 input topik soal */}
                             <div className="mb-4">
                                 <label className="form-label fw-bold">1. Masukkan Topik Soal</label>
                                 {mode === 'single' ? (
@@ -195,16 +196,7 @@ export default function GenerateQuestionPage() {
                                     <TagInput onTopicsChange={setTopics} />
                                 )}
                             </div>
-                            <div className="mb-4">
-                                <div className="form-check mb-2">
-                                    <input className="form-check-input" type="checkbox" id="showRppCheck" checked={showRpp} onChange={(e) => setShowRpp(e.target.checked)} />
-                                    <label className="form-check-label fw-bold" htmlFor="showRppCheck">2. Sertakan Konteks dari RPP (Opsional)</label>
-                                </div>
-                                {showRpp && (
-                                    <textarea id="rppContext" className="form-control" rows="4" placeholder="Salin dan tempel bagian dari RPP Anda di sini..." value={rppContext} onChange={(e) => setRppContext(e.target.value)}></textarea>
-                                )}
-                            </div>
-                            <label className="form-label fw-bold">3. Tentukan Pengaturan</label>
+                            <label className="form-label fw-bold">2. Tentukan Pengaturan</label>
                             <div className='row g-2 mb-4'>
                                 <div className="col-md">
                                     <select className="form-select form-select-lg" value={difficulty} onChange={(e) => setDifficulty(e.target.value)} disabled={loading}>
@@ -224,6 +216,15 @@ export default function GenerateQuestionPage() {
                                     <><div className="col-md"><div className="input-group"><span className="input-group-text">PG</span><input type="number" className="form-control form-control-lg" value={numMultipleChoice} onChange={(e) => setNumMultipleChoice(Number(e.target.value))} min="0" /></div></div><div className="col-md"><div className="input-group"><span className="input-group-text">Esai</span><input type="number" className="form-control form-control-lg" value={numEssay} onChange={(e) => setNumEssay(Number(e.target.value))} min="0" /></div></div></>
                                 ) : (
                                     <div className="col-md"><select className="form-select form-select-lg" value={numQuestions} onChange={(e) => setNumQuestions(Number(e.target.value))} disabled={loading}><option value="1">1 Soal</option><option value="3">3 Soal</option><option value="5">5 Soal</option><option value="10">10 Soal</option></select></div>
+                                )}
+                            </div>
+                            <div className="mb-4">
+                                <div className="form-check mb-2">
+                                    <label className="form-check-label fw-bold" htmlFor="showRppCheck"> Sertakan Konteks dari RPP (Opsional)</label>
+                                    <input className="form-check-input" type="checkbox" id="showRppCheck" checked={showRpp} onChange={(e) => setShowRpp(e.target.checked)} />
+                                </div>
+                                {showRpp && (
+                                    <textarea id="rppContext" className="form-control" rows="4" placeholder="Salin dan tempel bagian dari RPP Anda di sini..." value={rppContext} onChange={(e) => setRppContext(e.target.value)}></textarea>
                                 )}
                             </div>
                             <div className="d-grid">

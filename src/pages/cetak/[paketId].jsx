@@ -19,7 +19,9 @@ export default function CetakPage({ paket }) {
     const [logo, setLogo] = useState(null);
     const [showNilai, setShowNilai] = useState(true);
     const [printMode, setPrintMode] = useState('soal');
-
+    // --- TAMBAHKAN STATE BARU DI SINI ---
+    const [kelas, setKelas] = useState('');
+    const [namaGuru, setNamaGuru] = useState('');
     if (router.isFallback || !paket) {
         return <div>Memuat data paket soal...</div>;
     }
@@ -37,7 +39,7 @@ export default function CetakPage({ paket }) {
 
     const handlePrint = () => { window.print(); };
 
-    const printProps = { paket, schoolName, academicYear, examDate, examTitle, logo, showNilai };
+    const printProps = { paket, schoolName, academicYear, examDate, examTitle, logo, showNilai, kelas, namaGuru };
 
     return (
         <div>
@@ -52,6 +54,9 @@ export default function CetakPage({ paket }) {
                             <div className="col-md-6 mb-3"><label htmlFor="schoolName" className="form-label">Nama/Alamat Sekolah</label><input type="text" className="form-control" id="schoolName" value={schoolName} onChange={(e) => setSchoolName(e.target.value)} /></div>
                             <div className="col-md-6 mb-3"><label htmlFor="academicYear" className="form-label">Tahun Akademik</label><input type="text" className="form-control" id="academicYear" value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} /></div>
                             <div className="col-md-6 mb-3"><label htmlFor="examDate" className="form-label">Hari / Tanggal</label><input type="text" className="form-control" id="examDate" value={examDate} onChange={(e) => setExamDate(e.target.value)} /></div>
+                            {/* --- INPUT BARU DITAMBAHKAN DI SINI --- */}
+                            <div className="col-md-6 mb-3"><label htmlFor="kelas" className="form-label">Kelas</label><input type="text" className="form-control" id="kelas" placeholder="Contoh: IX A" value={kelas} onChange={(e) => setKelas(e.target.value)} /></div>
+                            <div className="col-md-6 mb-3"><label htmlFor="namaGuru" className="form-label">Nama Guru</label><input type="text" className="form-control" id="namaGuru" placeholder="Nama Guru Pengampu" value={namaGuru} onChange={(e) => setNamaGuru(e.target.value)} /></div>
                             <div className="col-md-12 mb-3"><label htmlFor="logo" className="form-label">Logo Sekolah (Opsional)</label><input type="file" className="form-control" id="logo" accept="image/*" onChange={handleLogoChange} /></div>
                         </div>
                         <div className="row align-items-end">
